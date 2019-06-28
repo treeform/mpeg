@@ -27,7 +27,7 @@ var plm = plm_create_with_filename("bjork-all-is-full-of-love.mpg")
 plm_set_audio_enabled(plm, 0, 0)
 
 # Will use Flippy image library to write images.
-# Create a an image that will hold 1 frame.
+# Create an image that will hold 1 frame.
 var image = newImage(plm_get_width(plm), plm_get_height(plm), 3)
 
 # For the first 100 frames.

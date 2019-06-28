@@ -1,3 +1,5 @@
+![Mpeg Logo](docs/mpegLogo.png)
+
 # Wrapper for PL_MPEG - a single header mpeg library.
 
 https://github.com/phoboslab/pl_mpeg

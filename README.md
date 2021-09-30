@@ -2,6 +2,16 @@
 
 # Wrapper for PL_MPEG - a single header mpeg library.
 
+`nimble install mpeg`
+
+![Github Actions](https://github.com/treeform/mpeg/workflows/Github%20Actions/badge.svg)
+
+[API reference](https://nimdocs.com/treeform/mpeg)
+
+This library has no dependencies other than the Nim standard libarary.
+
+## About
+
 https://github.com/phoboslab/pl_mpeg
 
 * MPEG1 Video decoder

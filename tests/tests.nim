@@ -1,0 +1,375 @@
+import
+  std/[math, os, unittest],
+  mpeg
+
+const DataPath = currentSourcePath().parentDir / "data"
+
+type
+  Playback = object
+    videos, audios, samples: int
+    videoTime, audioTime: float64
+    energy: float64
+
+  Input = object
+    data: string
+    position: int
+    loads, seeks: int
+
+proc onVideo(decoder: ptr plm_t, frame: ptr plm_frame_t, user: pointer)
+    {.cdecl, raises: [].} =
+  ## Counts video frames delivered through the C callback boundary.
+  let playback = cast[ptr Playback](user)
+  inc playback.videos
+  playback.videoTime = frame.time
+
+proc onAudio(decoder: ptr plm_t, frame: ptr plm_samples_t, user: pointer)
+    {.cdecl, raises: [].} =
+  ## Counts stereo sample frames and measures callback audio energy.
+  let playback = cast[ptr Playback](user)
+  inc playback.audios
+  playback.samples += int(frame.count)
+  playback.audioTime = frame.time
+  for i in 0 ..< int(frame.count) * 2:
+    playback.energy += float64(frame.interleaved[i]) ^ 2
+
+proc loadInput(buffer: ptr plm_buffer_t, user: pointer)
+    {.cdecl, raises: [].} =
+  ## Supplies small chunks to exercise packet boundaries and refilling.
+  let
+    input = cast[ptr Input](user)
+    count = min(733, input.data.len - input.position)
+  inc input.loads
+  if count > 0:
+    discard plm_buffer_write(
+      buffer,
+      cast[ptr uint8](addr input.data[input.position]),
+      csize_t(count)
+    )
+    input.position += count
+  if input.position == input.data.len:
+    plm_buffer_signal_end(buffer)
+
+proc seekInput(buffer: ptr plm_buffer_t, offset: csize_t, user: pointer)
+    {.cdecl, raises: [].} =
+  ## Repositions the custom input when the decoder rewinds or seeks.
+  let input = cast[ptr Input](user)
+  input.position = min(int(offset), input.data.len)
+  inc input.seeks
+
+proc tellInput(buffer: ptr plm_buffer_t, user: pointer): csize_t
+    {.cdecl, raises: [].} =
+  ## Returns the custom input's byte position.
+  csize_t(cast[ptr Input](user).position)
+
+proc referenceSample(data: string, index: int): float32 =
+  ## Reads a little-endian reference float without alignment assumptions.
+  var bits: uint32
+  for i in 0 ..< 4:
+    bits = bits or (uint32(uint8(data[index * 4 + i])) shl (i * 8))
+  return cast[float32](bits)
+
+suite "MPEG decoding":
+  test "file metadata and video frames include padded edges and B frames":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    decoder.audioEnabled = false
+    check decoder.width == 162
+    check decoder.height == 98
+    check decoder.frameRate == 30
+    check decoder.sampleRate == 48000
+    check decoder.hasAudio
+    var
+      frame: VideoFrame
+      count = 0
+      first: seq[uint8]
+    while decoder.decodeVideo(frame):
+      check frame.rgba.len == 162 * 98 * 4
+      check abs(frame.time - float64(count) / 30) < 0.000001
+      if count == 0:
+        first = frame.rgba
+      for i in countup(3, frame.rgba.high, 4):
+        check frame.rgba[i] == 255
+      inc count
+    check count == 60
+    check frame.rgba != first
+    check not decoder.decodeVideo(frame)
+
+  test "first and final RGB frames agree with an independent decoder":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    decoder.audioEnabled = false
+    var frame: VideoFrame
+    for index in 0 ..< 60:
+      require decoder.decodeVideo(frame)
+      if index in [0, 59]:
+        let
+          name =
+            if index == 0:
+              "stereo.rgb"
+            else:
+              "stereo-last.rgb"
+          reference = readFile(DataPath / name)
+        require reference.len == frame.width * frame.height * 3
+        var difference: float64
+        for pixel in 0 ..< frame.width * frame.height:
+          for channel in 0 ..< 3:
+            difference += abs(float64(
+              int(frame.rgba[pixel * 4 + channel]) -
+              int(uint8(reference[pixel * 3 + channel]))
+            ))
+        # The decoders use different chroma interpolation and rounding.
+        check difference / float64(reference.len) < 6.0
+
+  test "stereo PCM agrees with FFmpeg in channels, phase, and volume":
+    let
+      decoder = openMpeg(DataPath / "stereo.mpg")
+      reference = readFile(DataPath / "stereo.f32")
+    defer: decoder.close()
+    decoder.videoEnabled = false
+    var
+      frame: AudioFrame
+      offset = 0
+      difference, expected, correlation: float64
+      energy: array[2, float64]
+    for packet in 0 ..< 6:
+      require decoder.decodeAudio(frame)
+      check frame.sampleRate == 48000
+      check frame.samples.len == 1152 * 2
+      check abs(frame.time - float64(packet * 1152) / 48000) < 0.000001
+      for i, sample in frame.samples:
+        let reference = referenceSample(reference, offset + i)
+        difference += float64(sample - reference) ^ 2
+        expected += float64(reference) ^ 2
+        correlation += float64(sample * reference)
+        energy[i mod 2] += float64(sample) ^ 2
+      offset += frame.samples.len
+    check offset * 4 == reference.len
+    check sqrt(difference / float64(offset)) < 0.007
+    check correlation / expected > 0.90
+    check correlation / expected < 1.10
+    check energy[0] / energy[1] > 3.5
+    check energy[0] / energy[1] < 4.5
+
+  test "audio reaches its final packet and rewinds after EOF":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    decoder.videoEnabled = false
+    var
+      frame: AudioFrame
+      count = 0
+    while decoder.decodeAudio(frame):
+      count += frame.samples.len div 2
+    check count == 84 * 1152
+    check plm_has_ended(decoder.raw) != 0
+    decoder.rewind()
+    check plm_has_ended(decoder.raw) == 0
+    require decoder.decodeAudio(frame)
+    check frame.time == 0
+
+  test "mono at 44100 Hz is returned in both stereo channels":
+    let decoder = openMpeg(DataPath / "mono.mpg")
+    defer: decoder.close()
+    decoder.videoEnabled = false
+    check decoder.sampleRate == 44100
+    var
+      frame: AudioFrame
+      count = 0
+      energy: float64
+    while decoder.decodeAudio(frame):
+      for i in countup(0, frame.samples.high, 2):
+        check frame.samples[i] == frame.samples[i + 1]
+        energy += float64(frame.samples[i]) ^ 2
+      inc count
+    check count == 39
+    check energy > 10
+
+  test "video-only streams need no audio decoder":
+    let decoder = openMpeg(DataPath / "video.mpg")
+    defer: decoder.close()
+    check not decoder.hasAudio
+    check decoder.sampleRate == 0
+    check decoder.frameRate == 25
+    var
+      video: VideoFrame
+      audio: AudioFrame
+      count = 0
+    check not decoder.decodeAudio(audio)
+    while decoder.decodeVideo(video):
+      inc count
+    check count == 12
+    decoder.rewind()
+    require decoder.decodeVideo(video)
+    check video.time == 0
+
+  test "memory decoding retains data after the caller changes its string":
+    var data = readFile(DataPath / "video.mpg")
+    let decoder = newMpeg(data)
+    defer: decoder.close()
+    data[0] = 'X'
+    data.setLen(0)
+    var frame: VideoFrame
+    require decoder.decodeVideo(frame)
+    check frame.width == 64
+    check frame.height == 48
+
+  test "invalid inputs and closed decoders report MpegError":
+    expect MpegError:
+      discard openMpeg(DataPath / "missing.mpg")
+    expect MpegError:
+      discard openMpeg("bad\0path")
+    for data in ["", "not a movie", "\0\0\1\xBA"]:
+      expect MpegError:
+        discard newMpeg(data)
+    let decoder = openMpeg(DataPath / "video.mpg")
+    decoder.close()
+    decoder.close()
+    var frame: VideoFrame
+    expect MpegError:
+      discard decoder.decodeVideo(frame)
+
+  test "owned frames survive decoder cleanup":
+    var
+      video: VideoFrame
+      audio: AudioFrame
+    block:
+      let decoder = newMpeg(readFile(DataPath / "stereo.mpg"))
+      require decoder.decodeVideo(video)
+      require decoder.decodeAudio(audio)
+    check video.rgba.len == 162 * 98 * 4
+    check video.rgba[3] == 255
+    check audio.samples.len == 1152 * 2
+    check audio.pcm16.len == audio.samples.len
+
+  test "automatic cleanup closes the native file handle":
+    let path = getTempDir() / ("mpeg-owned-" & $getCurrentProcessId() & ".mpg")
+    copyFile(DataPath / "video.mpg", path)
+    block:
+      let decoder = openMpeg(path)
+      var frame: VideoFrame
+      require decoder.decodeVideo(frame)
+    removeFile(path)
+    check not fileExists(path)
+
+  test "Unicode filenames use Nim's file opening":
+    let path = getTempDir() / ("mpeg-映画-" & $getCurrentProcessId() & ".mpg")
+    copyFile(DataPath / "video.mpg", path)
+    defer: removeFile(path)
+    let decoder = openMpeg(path)
+    defer: decoder.close()
+    var frame: VideoFrame
+    check decoder.decodeVideo(frame)
+
+  test "float audio converts to clipped signed PCM":
+    let frame = AudioFrame(samples: @[-2.0'f, -1, 0, 0.5, 1, 2])
+    check frame.pcm16 == @[-32767'i16, -32767, 0, 16384, 32767, 32767]
+
+suite "PL_MPEG native API":
+  test "timed callbacks deliver all video and audio through the C ABI":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    var playback: Playback
+    plm_set_video_decode_callback(decoder.raw, onVideo, addr playback)
+    plm_set_audio_decode_callback(decoder.raw, onAudio, addr playback)
+    plm_set_audio_lead_time(decoder.raw, 0.05)
+    for i in 0 ..< 250:
+      plm_decode(decoder.raw, 0.01)
+    check playback.videos == 60
+    check playback.audios == 84
+    check playback.samples == 84 * 1152
+    check playback.energy > 100
+    check abs(playback.videoTime - playback.audioTime) < 0.05
+    check plm_has_ended(decoder.raw) != 0
+
+  test "seeking delivers the target frame and resynchronizes audio":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    var playback: Playback
+    plm_set_video_decode_callback(decoder.raw, onVideo, addr playback)
+    plm_set_audio_decode_callback(decoder.raw, onAudio, addr playback)
+    plm_set_audio_lead_time(decoder.raw, 0.05)
+    check decoder.duration > 1.8
+    check decoder.duration <= 2.1
+    require plm_seek(decoder.raw, 1.0, 1) != 0
+    check playback.videos == 1
+    check playback.videoTime >= 1.0
+    check playback.videoTime < 1.04
+    check playback.audios > 0
+    check abs(playback.videoTime - playback.audioTime) < 0.10
+    plm_decode(decoder.raw, 0.1)
+    check playback.videos > 1
+
+  test "looping produces video and audio across the end boundary":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    var playback: Playback
+    plm_set_video_decode_callback(decoder.raw, onVideo, addr playback)
+    plm_set_audio_decode_callback(decoder.raw, onAudio, addr playback)
+    plm_set_loop(decoder.raw, 1)
+    for i in 0 ..< 450:
+      plm_decode(decoder.raw, 0.01)
+    check playback.videos >= 120
+    check playback.audios >= 168
+    check plm_has_ended(decoder.raw) == 0
+
+  test "RGB stride preserves padding and channel order":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    decoder.audioEnabled = false
+    let frame = plm_decode_video(decoder.raw)
+    require frame != nil
+    let stride = int(frame.width) * 3 + 19
+    var
+      rgb = newSeq[uint8](stride * int(frame.height))
+      bgr = rgb
+    for i in 0 ..< rgb.len:
+      rgb[i] = 77
+      bgr[i] = 77
+    plm_frame_to_rgb(frame, addr rgb[0], cint(stride))
+    plm_frame_to_bgr(frame, addr bgr[0], cint(stride))
+    for y in 0 ..< int(frame.height):
+      for x in 0 ..< int(frame.width):
+        let i = y * stride + x * 3
+        check rgb[i] == bgr[i + 2]
+        check rgb[i + 1] == bgr[i + 1]
+        check rgb[i + 2] == bgr[i]
+      for x in int(frame.width) * 3 ..< stride:
+        check rgb[y * stride + x] == 77
+
+  test "custom input callbacks support chunk boundaries and rewind":
+    var input = Input(data: readFile(DataPath / "stereo.mpg"))
+    let
+      buffer = plm_buffer_create_with_callbacks(
+        loadInput, seekInput, tellInput, csize_t(input.data.len), addr input
+      )
+      decoder = plm_create_with_buffer(buffer, 1)
+    require decoder != nil
+    defer: plm_destroy(decoder)
+    plm_set_audio_enabled(decoder, 0)
+    var count = 0
+    for i in 0 ..< 2000:
+      if plm_decode_video(decoder) != nil:
+        inc count
+      if plm_has_ended(decoder) != 0:
+        break
+    check count == 60
+    check input.loads > 100
+    plm_rewind(decoder)
+    check input.seeks > 0
+    var frame: ptr plm_frame_t
+    for i in 0 ..< 100:
+      frame = plm_decode_video(decoder)
+      if frame != nil:
+        break
+    require frame != nil
+    check frame.time == 0
+
+  test "original audio selection and packed RGB calls still work":
+    let decoder = openMpeg(DataPath / "stereo.mpg")
+    defer: decoder.close()
+    plm_set_audio_enabled(decoder.raw, 0, 0)
+    let frame = plm_decode_video(decoder.raw)
+    require frame != nil
+    var rgb = newSeq[uint8](int(frame.width * frame.height) * 3)
+    plm_frame_to_rgb(frame, addr rgb[0])
+    check PLM_DEMUX_PACKET_AUDIO_4 == 0xC3
+    check PLM_AUDIO_SAMPLES_PER_FRAME == 1152

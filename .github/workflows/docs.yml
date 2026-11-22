@@ -1,0 +1,28 @@
+name: docs
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: write
+env:
+  nim-src: src/mpeg.nim
+  deploy-dir: .gh-pages
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: treeform/setup-nim-action@v6
+      - name: Install dependencies
+        run: |
+          cd ..
+          nimby install -g "mpeg/mpeg.nimble"
+      - run: nim doc --index:on --project --git.url:https://github.com/${{ github.repository }} --git.commit:master  --out:${{ env.deploy-dir }} ${{ env.nim-src }}
+      - name: Copy to index.html
+        run: cp ${{ env.deploy-dir }}/mpeg.html ${{ env.deploy-dir }}/index.html
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ env.deploy-dir }}

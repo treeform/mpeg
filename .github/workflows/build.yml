@@ -1,0 +1,27 @@
+name: Github Actions
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: treeform/setup-nim-action@v6
+      - name: Install dependencies
+        shell: bash
+        run: |
+          cd ..
+          nimby install -g "mpeg/mpeg.nimble"
+      - run: nim r tests/tests.nim
+      - run: nim r -d:release tests/tests.nim
+      - run: nim r examples/decode.nim

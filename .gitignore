@@ -1,6 +1,25 @@
+# Ignore files with no extension.
 *
-!/**/
+!*/
 !*.*
+!LICENSE
+
+# Ignore hidden files, but not the license or github files.
+.*
+!.github/
+!.github/**
+!.gitignore
+
+# Normal ignores.
 *.exe
-*.dll
 nimcache
+*.pdb
+*.ilk
+*.out
+
+# Project specific ignores.
+*.dll
+*.o
+*.obj
+*.so
+*.dylib

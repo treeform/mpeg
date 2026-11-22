@@ -1,12 +1,9 @@
-# Package
+version = "0.2.0"
+author = "treeform"
+description = "MPEG-1 video and MP2 audio decoding with bundled PL_MPEG."
+license = "MIT"
+srcDir = "src"
 
-version       = "0.1.1"
-author        = "Andre von Houck"
-description   = "Wrapper for pl_mpeg single header mpeg library."
-license       = "MIT"
-srcDir        = "src"
+skipDirs = @["docs", "examples", "tests", "tools"]
 
-skipDirs = @["examples"]
-
-# Dependencies
-requires "nim >= 0.20.0"
+requires "nim >= 2.2.4"

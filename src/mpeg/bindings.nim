@@ -185,6 +185,8 @@ type
     PLM_BUFFER_MODE_FILE, PLM_BUFFER_MODE_FIXED_MEM, PLM_BUFFER_MODE_RING, PLM_BUFFER_MODE_APPEND
 
 import idct, profile, simd, synthesis
+when buildNeon:
+  import kernels_neon
 when buildAvx2:
   import kernels_avx2
 include memory

@@ -253,7 +253,9 @@ proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int,
   profileScope("synthesize channel", detail = true)
   plm_audio_idct36(self.sample[ch], subblock, self.V[ch], self.vPos)
   var accum: array[32, float32]
-  when buildAvx2:
+  when buildNeon:
+    synthesisWindowNeon(self.V[ch], PLM_AUDIO_SYNTHESIS_WINDOW, self.vPos, accum)
+  elif buildAvx2:
     if useAvx2:
       synthesisWindowAvx2(self.V[ch], PLM_AUDIO_SYNTHESIS_WINDOW, self.vPos, accum)
     else:

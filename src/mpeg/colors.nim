@@ -51,6 +51,10 @@ proc convertFrame(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint,
         pixel(x + yStride, i + int(stride))
         when secondCol: pixel(x + yStride + 1, i + int(stride) + pixelSize)
     var firstPair = 0
+    when buildNeon and opaque and secondRow:
+      opaqueRgbaRowNeon(yRow, cbRow, crRow, dstRow, cint(width))
+      opaqueRgbaRowNeon(yRow + yStride, cbRow, crRow, dstRow + int(stride), cint(width))
+      firstPair = (width div 8) * 4
     when buildAvx2 and opaque and secondRow:
       if useAvx2 and width >= 32:
         opaqueRgbaRowsAvx2(yRow, yRow + yStride, cbRow, crRow,

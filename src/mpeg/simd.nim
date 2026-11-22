@@ -12,3 +12,6 @@ when buildAvx2:
   else:
     proc cpuSupports(feature: cstring): cint {.importc: "__builtin_cpu_supports", nodecl.}
     let useAvx2* = cpuSupports("avx2") != 0
+
+const buildNeon* = defined(arm64) and not defined(mpegNoSimd) and
+  (defined(gcc) or defined(clang)) and not defined(js)

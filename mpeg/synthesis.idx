@@ -1,3 +1,3 @@
 nimTitle	synthesis	mpeg/synthesis.html	module mpeg/synthesis		0
-nim	synthesisTaps	mpeg/synthesis.html#synthesisTaps.i,int	iterator synthesisTaps(vPos: int): tuple[w, v: int]		5
-nim	synthesisWindowPortable	mpeg/synthesis.html#synthesisWindowPortable,array[,float32],array[,float32],int,array[,float32]	proc synthesisWindowPortable(ring: array[1024, float32]; window: array[512, float32];\n                        vPos: int; samples: var array[32, float32])		14
+nim	synthesisTaps	mpeg/synthesis.html#synthesisTaps.i,int	iterator synthesisTaps(vPos: int): tuple[w, v: int]		10
+nim	synthesisWindowPortable	mpeg/synthesis.html#synthesisWindowPortable,array[,float32],array[,float32],int,array[,float32]	proc synthesisWindowPortable(ring: array[1024, float32]; window: array[512, float32];\n                        vPos: int; samples: var array[32, float32])		19

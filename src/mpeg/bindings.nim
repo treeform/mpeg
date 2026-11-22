@@ -345,24 +345,6 @@ proc plm_video_has_ended*(self: ptr plm_video_t): cint
 proc plm_video_decode*(self: ptr plm_video_t): ptr plm_frame_t
   ## Returns a borrowed frame and advances the video clock.
 
-proc plm_frame_to_rgb*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint)
-  ## Convert the YCrCb data of a frame into interleaved R G B data.
-
-proc plm_frame_to_bgr*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint)
-  ## Writes BGR pixels using the destination stride in bytes.
-
-proc plm_frame_to_rgba*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint)
-  ## Writes RGB bytes at the given stride, leaving alpha bytes untouched.
-
-proc plm_frame_to_bgra*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint)
-  ## Writes BGR bytes at the given stride, leaving alpha bytes untouched.
-
-proc plm_frame_to_argb*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint)
-  ## Writes RGB after each untouched alpha byte using the given stride.
-
-proc plm_frame_to_abgr*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint)
-  ## Writes BGR after each untouched alpha byte using the given stride.
-
 proc plm_audio_create_with_buffer*(
   buffer: ptr plm_buffer_t,
   destroy_when_done: cint
@@ -395,6 +377,8 @@ proc plm_audio_decode*(self: ptr plm_audio_t): ptr plm_samples_t
   ## Returns borrowed samples for one MP2 packet and advances the audio clock.
 
 {.pop.}
+
+include colors
 
 proc plm_set_audio_enabled*(
   decoder: ptr plm_t,

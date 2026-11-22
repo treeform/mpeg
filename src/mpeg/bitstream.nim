@@ -5,7 +5,6 @@ proc plm_buffer_load_file_callback(self: ptr plm_buffer_t, user: pointer)
 proc plm_buffer_seek_file_callback(self: ptr plm_buffer_t, offset: csize_t, user: pointer)
 proc plm_buffer_tell_file_callback(self: ptr plm_buffer_t, user: pointer): csize_t
 proc plm_buffer_has(self: ptr plm_buffer_t, count: csize_t): cint
-proc plm_buffer_read(self: ptr plm_buffer_t, count: cint): cint
 proc plm_buffer_align(self: ptr plm_buffer_t)
 proc plm_buffer_skip(self: ptr plm_buffer_t, count: csize_t)
 proc plm_buffer_skip_bytes(self: ptr plm_buffer_t, v: uint8): cint
@@ -196,7 +195,7 @@ proc plm_buffer_has(self: ptr plm_buffer_t, count: csize_t): cint =
     self.hasEnded = 1
   return 0
 
-proc plm_buffer_read(self: ptr plm_buffer_t, count: cint): cint =
+proc readAcrossBoundary(self: ptr plm_buffer_t, count: cint): cint =
   var count = count
   if plm_buffer_has(self, csize_t(count)) == 0:
     return 0
@@ -211,6 +210,21 @@ proc plm_buffer_read(self: ptr plm_buffer_t, count: cint): cint =
     self.bitIndex += csize_t(read)
     count -= read
   return value
+
+proc plm_buffer_read(self: ptr plm_buffer_t, count: cint): cint {.inline.} =
+  # Codec fields are at most 24 bits. A four-byte window covers one field
+  # at any bit alignment, without a refill or an unaligned word load.
+  let bytePos = self.bitIndex shr 3
+  if bytePos < self.length and self.length - bytePos >= 4 and count in 1..24:
+    let
+      offset = int(self.bitIndex and 7)
+      word = (uint32(self.bytes[bytePos]) shl 24) or
+             (uint32(self.bytes[bytePos + 1]) shl 16) or
+             (uint32(self.bytes[bytePos + 2]) shl 8) or
+             uint32(self.bytes[bytePos + 3])
+    self.bitIndex += csize_t(count)
+    return cint((word shl offset) shr (32 - count))
+  readAcrossBoundary(self, count)
 
 proc plm_buffer_align(self: ptr plm_buffer_t) =
   self.bitIndex = ((self.bitIndex + 7) shr 3) shl 3
@@ -229,13 +243,15 @@ proc plm_buffer_skip_bytes(self: ptr plm_buffer_t, v: uint8): cint =
 
 proc plm_buffer_next_start_code(self: ptr plm_buffer_t): cint =
   plm_buffer_align(self)
-  while plm_buffer_has(self, csize_t((5 shl 3))) != 0:
-    let byteIndex: csize_t = self.bitIndex shr 3
-    if cint(self.bytes[byteIndex]) == 0x00 and cint(self.bytes[byteIndex + 1]) == 0x00 and cint(
-        self.bytes[byteIndex + 2]) == 0x01:
-      self.bitIndex = (byteIndex + 4) shl 3
-      return cint(self.bytes[byteIndex + 3])
-    self.bitIndex += 8
+  while plm_buffer_has(self, 5 * 8) != 0:
+    var i = self.bitIndex shr 3
+    let last = self.length - 5
+    while i <= last:
+      if self.bytes[i] == 0 and self.bytes[i + 1] == 0 and self.bytes[i + 2] == 1:
+        self.bitIndex = (i + 4) shl 3
+        return cint(self.bytes[i + 3])
+      inc i
+    self.bitIndex = i shl 3
   return -1
 
 proc plm_buffer_find_start_code(self: ptr plm_buffer_t, code: cint): cint =
@@ -262,10 +278,39 @@ proc plm_buffer_peek_non_zero(self: ptr plm_buffer_t, bitCount: cint): cint =
   self.bitIndex -= csize_t(bitCount)
   return cint(val != 0)
 
-proc readVlc(buffer: ptr plm_buffer_t, table: openArray[VlcNode]): cint =
-  var index = 0'i32
+type VlcPrefix = object
+  bits: uint8
+  node: VlcNode
+
+func prefixTable(tree: openArray[VlcNode]): array[256, VlcPrefix] =
+  # Precompute the first eight branches for each possible input byte.
+  for prefix in 0 ..< result.len:
+    var node: VlcNode
+    for depth in 1..8:
+      node = tree[node.index + ((prefix shr (8 - depth)) and 1)]
+      if node.index <= 0 or depth == 8:
+        result[prefix] = VlcPrefix(bits: uint8(depth), node: node)
+        break
+
+proc readVlcTail(buffer: ptr plm_buffer_t, table: openArray[VlcNode], start: int32): cint =
+  var index = start
   while true:
     let node = table[index + plm_buffer_read(buffer, 1)]
     if node.index <= 0:
       return node.value
     index = node.index
+
+proc readVlc[N: static int](buffer: ptr plm_buffer_t, table: static array[N, VlcNode]): cint =
+  const prefixes = prefixTable(table)
+  let bytePos = buffer.bitIndex shr 3
+  if bytePos + 1 < buffer.length:
+    let
+      pair = (uint16(buffer.bytes[bytePos]) shl 8) or uint16(buffer.bytes[bytePos + 1])
+      prefix = uint8((pair shr (8 - int(buffer.bitIndex and 7))) and 255)
+      entry = prefixes[prefix]
+    buffer.bitIndex += csize_t(entry.bits)
+    if entry.node.index <= 0:
+      return entry.node.value
+    return readVlcTail(buffer, table, entry.node.index)
+  # A short code can still end in the final byte. Refill only as needed.
+  readVlcTail(buffer, table, 0)

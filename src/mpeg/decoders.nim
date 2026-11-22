@@ -129,10 +129,7 @@ proc decodeVideo*(decoder: Decoder, frame: var VideoFrame): bool
   frame.width = int(decoded.width)
   frame.height = int(decoded.height)
   frame.rgba.setLen(frame.width * frame.height * 4)
-  # PL_MPEG leaves alpha untouched, so initialize it explicitly.
-  for i in countup(3, frame.rgba.high, 4):
-    frame.rgba[i] = 255
-  plm_frame_to_rgba(decoded, addr frame.rgba[0], cint(frame.width * 4))
+  frameToOpaqueRgba(decoded, addr frame.rgba[0], cint(frame.width * 4))
   return true
 
 proc decodeAudio*(decoder: Decoder, frame: var AudioFrame): bool

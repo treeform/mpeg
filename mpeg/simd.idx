@@ -1,3 +1,4 @@
 nimTitle	simd	mpeg/simd.html	module mpeg/simd		0
 nim	buildAvx2	mpeg/simd.html#buildAvx2	const buildAvx2		3
 nim	useAvx2	mpeg/simd.html#useAvx2	let useAvx2		14
+nim	buildNeon	mpeg/simd.html#buildNeon	const buildNeon		16

@@ -15,94 +15,94 @@ nim	plm_t	mpeg/bindings.html#plm_t	object plm_t		38
 nim	plm_buffer_t	mpeg/bindings.html#plm_buffer_t	object plm_buffer_t		59
 nim	plm_demux_t	mpeg/bindings.html#plm_demux_t	object plm_demux_t		78
 nim	plm_video_t	mpeg/bindings.html#plm_video_t	object plm_video_t		102
-nim	plm_audio_t	mpeg/bindings.html#plm_audio_t	object plm_audio_t		146
-nim	plm_video_decode_callback	mpeg/bindings.html#plm_video_decode_callback	type plm_video_decode_callback		167
-nim	plm_audio_decode_callback	mpeg/bindings.html#plm_audio_decode_callback	type plm_audio_decode_callback		170
-nim	plm_buffer_load_callback	mpeg/bindings.html#plm_buffer_load_callback	type plm_buffer_load_callback		173
-nim	plm_buffer_seek_callback	mpeg/bindings.html#plm_buffer_seek_callback	type plm_buffer_seek_callback		176
-nim	plm_buffer_tell_callback	mpeg/bindings.html#plm_buffer_tell_callback	type plm_buffer_tell_callback		179
-nim	plm_create_with_filename	mpeg/bindings.html#plm_create_with_filename,cstring	proc plm_create_with_filename(filename: cstring): ptr plm_t		190
-nim	plm_create_with_file	mpeg/bindings.html#plm_create_with_file,File,cint	proc plm_create_with_file(fh: File; close_when_done: cint): ptr plm_t		193
-nim	plm_create_with_memory	mpeg/bindings.html#plm_create_with_memory,ptr.uint8,csize_t,cint	proc plm_create_with_memory(bytes: ptr uint8; length: csize_t; free_when_done: cint): ptr plm_t		196
-nim	plm_create_with_buffer	mpeg/bindings.html#plm_create_with_buffer,ptr.plm_buffer_t,cint	proc plm_create_with_buffer(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_t		203
-nim	plm_destroy	mpeg/bindings.html#plm_destroy,ptr.plm_t	proc plm_destroy(self: ptr plm_t)		209
-nim	plm_has_headers	mpeg/bindings.html#plm_has_headers,ptr.plm_t	proc plm_has_headers(self: ptr plm_t): cint		212
-nim	plm_probe	mpeg/bindings.html#plm_probe,ptr.plm_t,csize_t	proc plm_probe(self: ptr plm_t; probesize: csize_t): cint		217
-nim	plm_get_video_enabled	mpeg/bindings.html#plm_get_video_enabled,ptr.plm_t	proc plm_get_video_enabled(self: ptr plm_t): cint		221
-nim	plm_set_video_enabled	mpeg/bindings.html#plm_set_video_enabled,ptr.plm_t,cint	proc plm_set_video_enabled(self: ptr plm_t; enabled: cint)		224
-nim	plm_get_num_video_streams	mpeg/bindings.html#plm_get_num_video_streams,ptr.plm_t	proc plm_get_num_video_streams(self: ptr plm_t): cint		227
-nim	plm_get_width	mpeg/bindings.html#plm_get_width,ptr.plm_t	proc plm_get_width(self: ptr plm_t): cint		230
-nim	plm_get_height	mpeg/bindings.html#plm_get_height,ptr.plm_t	proc plm_get_height(self: ptr plm_t): cint		233
-nim	plm_get_pixel_aspect_ratio	mpeg/bindings.html#plm_get_pixel_aspect_ratio,ptr.plm_t	proc plm_get_pixel_aspect_ratio(self: ptr plm_t): cdouble		236
-nim	plm_get_framerate	mpeg/bindings.html#plm_get_framerate,ptr.plm_t	proc plm_get_framerate(self: ptr plm_t): cdouble		239
-nim	plm_get_audio_enabled	mpeg/bindings.html#plm_get_audio_enabled,ptr.plm_t	proc plm_get_audio_enabled(self: ptr plm_t): cint		242
-nim	plm_set_audio_enabled	mpeg/bindings.html#plm_set_audio_enabled,ptr.plm_t,cint	proc plm_set_audio_enabled(self: ptr plm_t; enabled: cint)		245
-nim	plm_get_num_audio_streams	mpeg/bindings.html#plm_get_num_audio_streams,ptr.plm_t	proc plm_get_num_audio_streams(self: ptr plm_t): cint		248
-nim	plm_set_audio_stream	mpeg/bindings.html#plm_set_audio_stream,ptr.plm_t,cint	proc plm_set_audio_stream(self: ptr plm_t; stream_index: cint)		251
-nim	plm_get_samplerate	mpeg/bindings.html#plm_get_samplerate,ptr.plm_t	proc plm_get_samplerate(self: ptr plm_t): cint		254
-nim	plm_get_audio_lead_time	mpeg/bindings.html#plm_get_audio_lead_time,ptr.plm_t	proc plm_get_audio_lead_time(self: ptr plm_t): cdouble		257
-nim	plm_set_audio_lead_time	mpeg/bindings.html#plm_set_audio_lead_time,ptr.plm_t,cdouble	proc plm_set_audio_lead_time(self: ptr plm_t; lead_time: cdouble)		261
-nim	plm_get_time	mpeg/bindings.html#plm_get_time,ptr.plm_t	proc plm_get_time(self: ptr plm_t): cdouble		264
-nim	plm_get_duration	mpeg/bindings.html#plm_get_duration,ptr.plm_t	proc plm_get_duration(self: ptr plm_t): cdouble		267
-nim	plm_rewind	mpeg/bindings.html#plm_rewind,ptr.plm_t	proc plm_rewind(self: ptr plm_t)		270
-nim	plm_get_loop	mpeg/bindings.html#plm_get_loop,ptr.plm_t	proc plm_get_loop(self: ptr plm_t): cint		273
-nim	plm_set_loop	mpeg/bindings.html#plm_set_loop,ptr.plm_t,cint	proc plm_set_loop(self: ptr plm_t; loop: cint)		276
-nim	plm_has_ended	mpeg/bindings.html#plm_has_ended,ptr.plm_t	proc plm_has_ended(self: ptr plm_t): cint		279
-nim	plm_set_video_decode_callback	mpeg/bindings.html#plm_set_video_decode_callback,ptr.plm_t,plm_video_decode_callback,pointer	proc plm_set_video_decode_callback(self: ptr plm_t; fp: plm_video_decode_callback;\n                              user: pointer)		282
-nim	plm_set_audio_decode_callback	mpeg/bindings.html#plm_set_audio_decode_callback,ptr.plm_t,plm_audio_decode_callback,pointer	proc plm_set_audio_decode_callback(self: ptr plm_t; fp: plm_audio_decode_callback;\n                              user: pointer)		289
-nim	plm_decode	mpeg/bindings.html#plm_decode,ptr.plm_t,cdouble	proc plm_decode(self: ptr plm_t; seconds: cdouble)		296
-nim	plm_decode_video	mpeg/bindings.html#plm_decode_video,ptr.plm_t	proc plm_decode_video(self: ptr plm_t): ptr plm_frame_t		299
-nim	plm_decode_audio	mpeg/bindings.html#plm_decode_audio,ptr.plm_t	proc plm_decode_audio(self: ptr plm_t): ptr plm_samples_t		302
-nim	plm_seek	mpeg/bindings.html#plm_seek,ptr.plm_t,cdouble,cint	proc plm_seek(self: ptr plm_t; time: cdouble; seek_exact: cint): cint		305
-nim	plm_seek_frame	mpeg/bindings.html#plm_seek_frame,ptr.plm_t,cdouble,cint	proc plm_seek_frame(self: ptr plm_t; time: cdouble; seek_exact: cint): ptr plm_frame_t		308
-nim	plm_buffer_create_with_filename	mpeg/bindings.html#plm_buffer_create_with_filename,cstring	proc plm_buffer_create_with_filename(filename: cstring): ptr plm_buffer_t		316
-nim	plm_buffer_create_with_file	mpeg/bindings.html#plm_buffer_create_with_file,File,cint	proc plm_buffer_create_with_file(fh: File; close_when_done: cint): ptr plm_buffer_t		319
-nim	plm_buffer_create_with_callbacks	mpeg/bindings.html#plm_buffer_create_with_callbacks,plm_buffer_load_callback,plm_buffer_seek_callback,plm_buffer_tell_callback,csize_t,pointer	proc plm_buffer_create_with_callbacks(load_callback: plm_buffer_load_callback;\n                                 seek_callback: plm_buffer_seek_callback;\n                                 tell_callback: plm_buffer_tell_callback;\n                                 length: csize_t; user: pointer): ptr plm_buffer_t		325
-nim	plm_buffer_create_with_memory	mpeg/bindings.html#plm_buffer_create_with_memory,ptr.uint8,csize_t,cint	proc plm_buffer_create_with_memory(bytes: ptr uint8; length: csize_t;\n                              free_when_done: cint): ptr plm_buffer_t		335
-nim	plm_buffer_create_with_capacity	mpeg/bindings.html#plm_buffer_create_with_capacity,csize_t	proc plm_buffer_create_with_capacity(capacity: csize_t): ptr plm_buffer_t		342
-nim	plm_buffer_create_for_appending	mpeg/bindings.html#plm_buffer_create_for_appending,csize_t	proc plm_buffer_create_for_appending(initial_capacity: csize_t): ptr plm_buffer_t		345
-nim	plm_buffer_destroy	mpeg/bindings.html#plm_buffer_destroy,ptr.plm_buffer_t	proc plm_buffer_destroy(self: ptr plm_buffer_t)		350
-nim	plm_buffer_write	mpeg/bindings.html#plm_buffer_write,ptr.plm_buffer_t,ptr.uint8,csize_t	proc plm_buffer_write(self: ptr plm_buffer_t; bytes: ptr uint8; length: csize_t): csize_t		353
-nim	plm_buffer_signal_end	mpeg/bindings.html#plm_buffer_signal_end,ptr.plm_buffer_t	proc plm_buffer_signal_end(self: ptr plm_buffer_t)		360
-nim	plm_buffer_set_load_callback	mpeg/bindings.html#plm_buffer_set_load_callback,ptr.plm_buffer_t,plm_buffer_load_callback,pointer	proc plm_buffer_set_load_callback(self: ptr plm_buffer_t;\n                             fp: plm_buffer_load_callback; user: pointer)		364
-nim	plm_buffer_rewind	mpeg/bindings.html#plm_buffer_rewind,ptr.plm_buffer_t	proc plm_buffer_rewind(self: ptr plm_buffer_t)		371
-nim	plm_buffer_get_size	mpeg/bindings.html#plm_buffer_get_size,ptr.plm_buffer_t	proc plm_buffer_get_size(self: ptr plm_buffer_t): csize_t		374
-nim	plm_buffer_get_remaining	mpeg/bindings.html#plm_buffer_get_remaining,ptr.plm_buffer_t	proc plm_buffer_get_remaining(self: ptr plm_buffer_t): csize_t		377
-nim	plm_buffer_has_ended	mpeg/bindings.html#plm_buffer_has_ended,ptr.plm_buffer_t	proc plm_buffer_has_ended(self: ptr plm_buffer_t): cint		380
-nim	plm_demux_create	mpeg/bindings.html#plm_demux_create,ptr.plm_buffer_t,cint	proc plm_demux_create(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_demux_t		384
-nim	plm_demux_destroy	mpeg/bindings.html#plm_demux_destroy,ptr.plm_demux_t	proc plm_demux_destroy(self: ptr plm_demux_t)		390
-nim	plm_demux_has_headers	mpeg/bindings.html#plm_demux_has_headers,ptr.plm_demux_t	proc plm_demux_has_headers(self: ptr plm_demux_t): cint		393
-nim	plm_demux_probe	mpeg/bindings.html#plm_demux_probe,ptr.plm_demux_t,csize_t	proc plm_demux_probe(self: ptr plm_demux_t; probesize: csize_t): cint		396
-nim	plm_demux_get_num_video_streams	mpeg/bindings.html#plm_demux_get_num_video_streams,ptr.plm_demux_t	proc plm_demux_get_num_video_streams(self: ptr plm_demux_t): cint		399
-nim	plm_demux_get_num_audio_streams	mpeg/bindings.html#plm_demux_get_num_audio_streams,ptr.plm_demux_t	proc plm_demux_get_num_audio_streams(self: ptr plm_demux_t): cint		402
-nim	plm_demux_rewind	mpeg/bindings.html#plm_demux_rewind,ptr.plm_demux_t	proc plm_demux_rewind(self: ptr plm_demux_t)		405
-nim	plm_demux_has_ended	mpeg/bindings.html#plm_demux_has_ended,ptr.plm_demux_t	proc plm_demux_has_ended(self: ptr plm_demux_t): cint		408
-nim	plm_demux_seek	mpeg/bindings.html#plm_demux_seek,ptr.plm_demux_t,cdouble,cint,cint	proc plm_demux_seek(self: ptr plm_demux_t; time: cdouble; type: cint;\n               force_intra: cint): ptr plm_packet_t		411
-nim	plm_demux_get_start_time	mpeg/bindings.html#plm_demux_get_start_time,ptr.plm_demux_t,cint	proc plm_demux_get_start_time(self: ptr plm_demux_t; type: cint): cdouble		420
-nim	plm_demux_get_duration	mpeg/bindings.html#plm_demux_get_duration,ptr.plm_demux_t,cint	proc plm_demux_get_duration(self: ptr plm_demux_t; type: cint): cdouble		423
-nim	plm_demux_decode	mpeg/bindings.html#plm_demux_decode,ptr.plm_demux_t	proc plm_demux_decode(self: ptr plm_demux_t): ptr plm_packet_t		426
-nim	plm_video_create_with_buffer	mpeg/bindings.html#plm_video_create_with_buffer,ptr.plm_buffer_t,cint	proc plm_video_create_with_buffer(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_video_t		429
-nim	plm_video_destroy	mpeg/bindings.html#plm_video_destroy,ptr.plm_video_t	proc plm_video_destroy(self: ptr plm_video_t)		435
-nim	plm_video_has_header	mpeg/bindings.html#plm_video_has_header,ptr.plm_video_t	proc plm_video_has_header(self: ptr plm_video_t): cint		438
-nim	plm_video_get_framerate	mpeg/bindings.html#plm_video_get_framerate,ptr.plm_video_t	proc plm_video_get_framerate(self: ptr plm_video_t): cdouble		442
-nim	plm_video_get_pixel_aspect_ratio	mpeg/bindings.html#plm_video_get_pixel_aspect_ratio,ptr.plm_video_t	proc plm_video_get_pixel_aspect_ratio(self: ptr plm_video_t): cdouble		445
-nim	plm_video_get_width	mpeg/bindings.html#plm_video_get_width,ptr.plm_video_t	proc plm_video_get_width(self: ptr plm_video_t): cint		448
-nim	plm_video_get_height	mpeg/bindings.html#plm_video_get_height,ptr.plm_video_t	proc plm_video_get_height(self: ptr plm_video_t): cint		451
-nim	plm_video_set_no_delay	mpeg/bindings.html#plm_video_set_no_delay,ptr.plm_video_t,cint	proc plm_video_set_no_delay(self: ptr plm_video_t; no_delay: cint)		454
-nim	plm_video_get_time	mpeg/bindings.html#plm_video_get_time,ptr.plm_video_t	proc plm_video_get_time(self: ptr plm_video_t): cdouble		457
-nim	plm_video_set_time	mpeg/bindings.html#plm_video_set_time,ptr.plm_video_t,cdouble	proc plm_video_set_time(self: ptr plm_video_t; time: cdouble)		460
-nim	plm_video_rewind	mpeg/bindings.html#plm_video_rewind,ptr.plm_video_t	proc plm_video_rewind(self: ptr plm_video_t)		463
-nim	plm_video_has_ended	mpeg/bindings.html#plm_video_has_ended,ptr.plm_video_t	proc plm_video_has_ended(self: ptr plm_video_t): cint		466
-nim	plm_video_decode	mpeg/bindings.html#plm_video_decode,ptr.plm_video_t	proc plm_video_decode(self: ptr plm_video_t): ptr plm_frame_t		469
-nim	plm_audio_create_with_buffer	mpeg/bindings.html#plm_audio_create_with_buffer,ptr.plm_buffer_t,cint	proc plm_audio_create_with_buffer(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_audio_t		472
-nim	plm_audio_destroy	mpeg/bindings.html#plm_audio_destroy,ptr.plm_audio_t	proc plm_audio_destroy(self: ptr plm_audio_t)		478
-nim	plm_audio_has_header	mpeg/bindings.html#plm_audio_has_header,ptr.plm_audio_t	proc plm_audio_has_header(self: ptr plm_audio_t): cint		481
-nim	plm_audio_get_samplerate	mpeg/bindings.html#plm_audio_get_samplerate,ptr.plm_audio_t	proc plm_audio_get_samplerate(self: ptr plm_audio_t): cint		485
-nim	plm_audio_get_time	mpeg/bindings.html#plm_audio_get_time,ptr.plm_audio_t	proc plm_audio_get_time(self: ptr plm_audio_t): cdouble		488
-nim	plm_audio_set_time	mpeg/bindings.html#plm_audio_set_time,ptr.plm_audio_t,cdouble	proc plm_audio_set_time(self: ptr plm_audio_t; time: cdouble)		491
-nim	plm_audio_rewind	mpeg/bindings.html#plm_audio_rewind,ptr.plm_audio_t	proc plm_audio_rewind(self: ptr plm_audio_t)		494
-nim	plm_audio_has_ended	mpeg/bindings.html#plm_audio_has_ended,ptr.plm_audio_t	proc plm_audio_has_ended(self: ptr plm_audio_t): cint		497
-nim	plm_audio_decode	mpeg/bindings.html#plm_audio_decode,ptr.plm_audio_t	proc plm_audio_decode(self: ptr plm_audio_t): ptr plm_samples_t		500
+nim	plm_audio_t	mpeg/bindings.html#plm_audio_t	object plm_audio_t		147
+nim	plm_video_decode_callback	mpeg/bindings.html#plm_video_decode_callback	type plm_video_decode_callback		168
+nim	plm_audio_decode_callback	mpeg/bindings.html#plm_audio_decode_callback	type plm_audio_decode_callback		171
+nim	plm_buffer_load_callback	mpeg/bindings.html#plm_buffer_load_callback	type plm_buffer_load_callback		174
+nim	plm_buffer_seek_callback	mpeg/bindings.html#plm_buffer_seek_callback	type plm_buffer_seek_callback		177
+nim	plm_buffer_tell_callback	mpeg/bindings.html#plm_buffer_tell_callback	type plm_buffer_tell_callback		180
+nim	plm_create_with_filename	mpeg/bindings.html#plm_create_with_filename,cstring	proc plm_create_with_filename(filename: cstring): ptr plm_t		191
+nim	plm_create_with_file	mpeg/bindings.html#plm_create_with_file,File,cint	proc plm_create_with_file(fh: File; close_when_done: cint): ptr plm_t		194
+nim	plm_create_with_memory	mpeg/bindings.html#plm_create_with_memory,ptr.uint8,csize_t,cint	proc plm_create_with_memory(bytes: ptr uint8; length: csize_t; free_when_done: cint): ptr plm_t		197
+nim	plm_create_with_buffer	mpeg/bindings.html#plm_create_with_buffer,ptr.plm_buffer_t,cint	proc plm_create_with_buffer(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_t		204
+nim	plm_destroy	mpeg/bindings.html#plm_destroy,ptr.plm_t	proc plm_destroy(self: ptr plm_t)		210
+nim	plm_has_headers	mpeg/bindings.html#plm_has_headers,ptr.plm_t	proc plm_has_headers(self: ptr plm_t): cint		213
+nim	plm_probe	mpeg/bindings.html#plm_probe,ptr.plm_t,csize_t	proc plm_probe(self: ptr plm_t; probesize: csize_t): cint		218
+nim	plm_get_video_enabled	mpeg/bindings.html#plm_get_video_enabled,ptr.plm_t	proc plm_get_video_enabled(self: ptr plm_t): cint		222
+nim	plm_set_video_enabled	mpeg/bindings.html#plm_set_video_enabled,ptr.plm_t,cint	proc plm_set_video_enabled(self: ptr plm_t; enabled: cint)		225
+nim	plm_get_num_video_streams	mpeg/bindings.html#plm_get_num_video_streams,ptr.plm_t	proc plm_get_num_video_streams(self: ptr plm_t): cint		228
+nim	plm_get_width	mpeg/bindings.html#plm_get_width,ptr.plm_t	proc plm_get_width(self: ptr plm_t): cint		231
+nim	plm_get_height	mpeg/bindings.html#plm_get_height,ptr.plm_t	proc plm_get_height(self: ptr plm_t): cint		234
+nim	plm_get_pixel_aspect_ratio	mpeg/bindings.html#plm_get_pixel_aspect_ratio,ptr.plm_t	proc plm_get_pixel_aspect_ratio(self: ptr plm_t): cdouble		237
+nim	plm_get_framerate	mpeg/bindings.html#plm_get_framerate,ptr.plm_t	proc plm_get_framerate(self: ptr plm_t): cdouble		240
+nim	plm_get_audio_enabled	mpeg/bindings.html#plm_get_audio_enabled,ptr.plm_t	proc plm_get_audio_enabled(self: ptr plm_t): cint		243
+nim	plm_set_audio_enabled	mpeg/bindings.html#plm_set_audio_enabled,ptr.plm_t,cint	proc plm_set_audio_enabled(self: ptr plm_t; enabled: cint)		246
+nim	plm_get_num_audio_streams	mpeg/bindings.html#plm_get_num_audio_streams,ptr.plm_t	proc plm_get_num_audio_streams(self: ptr plm_t): cint		249
+nim	plm_set_audio_stream	mpeg/bindings.html#plm_set_audio_stream,ptr.plm_t,cint	proc plm_set_audio_stream(self: ptr plm_t; stream_index: cint)		252
+nim	plm_get_samplerate	mpeg/bindings.html#plm_get_samplerate,ptr.plm_t	proc plm_get_samplerate(self: ptr plm_t): cint		255
+nim	plm_get_audio_lead_time	mpeg/bindings.html#plm_get_audio_lead_time,ptr.plm_t	proc plm_get_audio_lead_time(self: ptr plm_t): cdouble		258
+nim	plm_set_audio_lead_time	mpeg/bindings.html#plm_set_audio_lead_time,ptr.plm_t,cdouble	proc plm_set_audio_lead_time(self: ptr plm_t; lead_time: cdouble)		262
+nim	plm_get_time	mpeg/bindings.html#plm_get_time,ptr.plm_t	proc plm_get_time(self: ptr plm_t): cdouble		265
+nim	plm_get_duration	mpeg/bindings.html#plm_get_duration,ptr.plm_t	proc plm_get_duration(self: ptr plm_t): cdouble		268
+nim	plm_rewind	mpeg/bindings.html#plm_rewind,ptr.plm_t	proc plm_rewind(self: ptr plm_t)		271
+nim	plm_get_loop	mpeg/bindings.html#plm_get_loop,ptr.plm_t	proc plm_get_loop(self: ptr plm_t): cint		274
+nim	plm_set_loop	mpeg/bindings.html#plm_set_loop,ptr.plm_t,cint	proc plm_set_loop(self: ptr plm_t; loop: cint)		277
+nim	plm_has_ended	mpeg/bindings.html#plm_has_ended,ptr.plm_t	proc plm_has_ended(self: ptr plm_t): cint		280
+nim	plm_set_video_decode_callback	mpeg/bindings.html#plm_set_video_decode_callback,ptr.plm_t,plm_video_decode_callback,pointer	proc plm_set_video_decode_callback(self: ptr plm_t; fp: plm_video_decode_callback;\n                              user: pointer)		283
+nim	plm_set_audio_decode_callback	mpeg/bindings.html#plm_set_audio_decode_callback,ptr.plm_t,plm_audio_decode_callback,pointer	proc plm_set_audio_decode_callback(self: ptr plm_t; fp: plm_audio_decode_callback;\n                              user: pointer)		290
+nim	plm_decode	mpeg/bindings.html#plm_decode,ptr.plm_t,cdouble	proc plm_decode(self: ptr plm_t; seconds: cdouble)		297
+nim	plm_decode_video	mpeg/bindings.html#plm_decode_video,ptr.plm_t	proc plm_decode_video(self: ptr plm_t): ptr plm_frame_t		300
+nim	plm_decode_audio	mpeg/bindings.html#plm_decode_audio,ptr.plm_t	proc plm_decode_audio(self: ptr plm_t): ptr plm_samples_t		303
+nim	plm_seek	mpeg/bindings.html#plm_seek,ptr.plm_t,cdouble,cint	proc plm_seek(self: ptr plm_t; time: cdouble; seek_exact: cint): cint		306
+nim	plm_seek_frame	mpeg/bindings.html#plm_seek_frame,ptr.plm_t,cdouble,cint	proc plm_seek_frame(self: ptr plm_t; time: cdouble; seek_exact: cint): ptr plm_frame_t		309
+nim	plm_buffer_create_with_filename	mpeg/bindings.html#plm_buffer_create_with_filename,cstring	proc plm_buffer_create_with_filename(filename: cstring): ptr plm_buffer_t		317
+nim	plm_buffer_create_with_file	mpeg/bindings.html#plm_buffer_create_with_file,File,cint	proc plm_buffer_create_with_file(fh: File; close_when_done: cint): ptr plm_buffer_t		320
+nim	plm_buffer_create_with_callbacks	mpeg/bindings.html#plm_buffer_create_with_callbacks,plm_buffer_load_callback,plm_buffer_seek_callback,plm_buffer_tell_callback,csize_t,pointer	proc plm_buffer_create_with_callbacks(load_callback: plm_buffer_load_callback;\n                                 seek_callback: plm_buffer_seek_callback;\n                                 tell_callback: plm_buffer_tell_callback;\n                                 length: csize_t; user: pointer): ptr plm_buffer_t		326
+nim	plm_buffer_create_with_memory	mpeg/bindings.html#plm_buffer_create_with_memory,ptr.uint8,csize_t,cint	proc plm_buffer_create_with_memory(bytes: ptr uint8; length: csize_t;\n                              free_when_done: cint): ptr plm_buffer_t		336
+nim	plm_buffer_create_with_capacity	mpeg/bindings.html#plm_buffer_create_with_capacity,csize_t	proc plm_buffer_create_with_capacity(capacity: csize_t): ptr plm_buffer_t		343
+nim	plm_buffer_create_for_appending	mpeg/bindings.html#plm_buffer_create_for_appending,csize_t	proc plm_buffer_create_for_appending(initial_capacity: csize_t): ptr plm_buffer_t		346
+nim	plm_buffer_destroy	mpeg/bindings.html#plm_buffer_destroy,ptr.plm_buffer_t	proc plm_buffer_destroy(self: ptr plm_buffer_t)		351
+nim	plm_buffer_write	mpeg/bindings.html#plm_buffer_write,ptr.plm_buffer_t,ptr.uint8,csize_t	proc plm_buffer_write(self: ptr plm_buffer_t; bytes: ptr uint8; length: csize_t): csize_t		354
+nim	plm_buffer_signal_end	mpeg/bindings.html#plm_buffer_signal_end,ptr.plm_buffer_t	proc plm_buffer_signal_end(self: ptr plm_buffer_t)		361
+nim	plm_buffer_set_load_callback	mpeg/bindings.html#plm_buffer_set_load_callback,ptr.plm_buffer_t,plm_buffer_load_callback,pointer	proc plm_buffer_set_load_callback(self: ptr plm_buffer_t;\n                             fp: plm_buffer_load_callback; user: pointer)		365
+nim	plm_buffer_rewind	mpeg/bindings.html#plm_buffer_rewind,ptr.plm_buffer_t	proc plm_buffer_rewind(self: ptr plm_buffer_t)		372
+nim	plm_buffer_get_size	mpeg/bindings.html#plm_buffer_get_size,ptr.plm_buffer_t	proc plm_buffer_get_size(self: ptr plm_buffer_t): csize_t		375
+nim	plm_buffer_get_remaining	mpeg/bindings.html#plm_buffer_get_remaining,ptr.plm_buffer_t	proc plm_buffer_get_remaining(self: ptr plm_buffer_t): csize_t		378
+nim	plm_buffer_has_ended	mpeg/bindings.html#plm_buffer_has_ended,ptr.plm_buffer_t	proc plm_buffer_has_ended(self: ptr plm_buffer_t): cint		381
+nim	plm_demux_create	mpeg/bindings.html#plm_demux_create,ptr.plm_buffer_t,cint	proc plm_demux_create(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_demux_t		385
+nim	plm_demux_destroy	mpeg/bindings.html#plm_demux_destroy,ptr.plm_demux_t	proc plm_demux_destroy(self: ptr plm_demux_t)		391
+nim	plm_demux_has_headers	mpeg/bindings.html#plm_demux_has_headers,ptr.plm_demux_t	proc plm_demux_has_headers(self: ptr plm_demux_t): cint		394
+nim	plm_demux_probe	mpeg/bindings.html#plm_demux_probe,ptr.plm_demux_t,csize_t	proc plm_demux_probe(self: ptr plm_demux_t; probesize: csize_t): cint		397
+nim	plm_demux_get_num_video_streams	mpeg/bindings.html#plm_demux_get_num_video_streams,ptr.plm_demux_t	proc plm_demux_get_num_video_streams(self: ptr plm_demux_t): cint		400
+nim	plm_demux_get_num_audio_streams	mpeg/bindings.html#plm_demux_get_num_audio_streams,ptr.plm_demux_t	proc plm_demux_get_num_audio_streams(self: ptr plm_demux_t): cint		403
+nim	plm_demux_rewind	mpeg/bindings.html#plm_demux_rewind,ptr.plm_demux_t	proc plm_demux_rewind(self: ptr plm_demux_t)		406
+nim	plm_demux_has_ended	mpeg/bindings.html#plm_demux_has_ended,ptr.plm_demux_t	proc plm_demux_has_ended(self: ptr plm_demux_t): cint		409
+nim	plm_demux_seek	mpeg/bindings.html#plm_demux_seek,ptr.plm_demux_t,cdouble,cint,cint	proc plm_demux_seek(self: ptr plm_demux_t; time: cdouble; type: cint;\n               force_intra: cint): ptr plm_packet_t		412
+nim	plm_demux_get_start_time	mpeg/bindings.html#plm_demux_get_start_time,ptr.plm_demux_t,cint	proc plm_demux_get_start_time(self: ptr plm_demux_t; type: cint): cdouble		421
+nim	plm_demux_get_duration	mpeg/bindings.html#plm_demux_get_duration,ptr.plm_demux_t,cint	proc plm_demux_get_duration(self: ptr plm_demux_t; type: cint): cdouble		424
+nim	plm_demux_decode	mpeg/bindings.html#plm_demux_decode,ptr.plm_demux_t	proc plm_demux_decode(self: ptr plm_demux_t): ptr plm_packet_t		427
+nim	plm_video_create_with_buffer	mpeg/bindings.html#plm_video_create_with_buffer,ptr.plm_buffer_t,cint	proc plm_video_create_with_buffer(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_video_t		430
+nim	plm_video_destroy	mpeg/bindings.html#plm_video_destroy,ptr.plm_video_t	proc plm_video_destroy(self: ptr plm_video_t)		436
+nim	plm_video_has_header	mpeg/bindings.html#plm_video_has_header,ptr.plm_video_t	proc plm_video_has_header(self: ptr plm_video_t): cint		439
+nim	plm_video_get_framerate	mpeg/bindings.html#plm_video_get_framerate,ptr.plm_video_t	proc plm_video_get_framerate(self: ptr plm_video_t): cdouble		443
+nim	plm_video_get_pixel_aspect_ratio	mpeg/bindings.html#plm_video_get_pixel_aspect_ratio,ptr.plm_video_t	proc plm_video_get_pixel_aspect_ratio(self: ptr plm_video_t): cdouble		446
+nim	plm_video_get_width	mpeg/bindings.html#plm_video_get_width,ptr.plm_video_t	proc plm_video_get_width(self: ptr plm_video_t): cint		449
+nim	plm_video_get_height	mpeg/bindings.html#plm_video_get_height,ptr.plm_video_t	proc plm_video_get_height(self: ptr plm_video_t): cint		452
+nim	plm_video_set_no_delay	mpeg/bindings.html#plm_video_set_no_delay,ptr.plm_video_t,cint	proc plm_video_set_no_delay(self: ptr plm_video_t; no_delay: cint)		455
+nim	plm_video_get_time	mpeg/bindings.html#plm_video_get_time,ptr.plm_video_t	proc plm_video_get_time(self: ptr plm_video_t): cdouble		458
+nim	plm_video_set_time	mpeg/bindings.html#plm_video_set_time,ptr.plm_video_t,cdouble	proc plm_video_set_time(self: ptr plm_video_t; time: cdouble)		461
+nim	plm_video_rewind	mpeg/bindings.html#plm_video_rewind,ptr.plm_video_t	proc plm_video_rewind(self: ptr plm_video_t)		464
+nim	plm_video_has_ended	mpeg/bindings.html#plm_video_has_ended,ptr.plm_video_t	proc plm_video_has_ended(self: ptr plm_video_t): cint		467
+nim	plm_video_decode	mpeg/bindings.html#plm_video_decode,ptr.plm_video_t	proc plm_video_decode(self: ptr plm_video_t): ptr plm_frame_t		470
+nim	plm_audio_create_with_buffer	mpeg/bindings.html#plm_audio_create_with_buffer,ptr.plm_buffer_t,cint	proc plm_audio_create_with_buffer(buffer: ptr plm_buffer_t; destroy_when_done: cint): ptr plm_audio_t		473
+nim	plm_audio_destroy	mpeg/bindings.html#plm_audio_destroy,ptr.plm_audio_t	proc plm_audio_destroy(self: ptr plm_audio_t)		479
+nim	plm_audio_has_header	mpeg/bindings.html#plm_audio_has_header,ptr.plm_audio_t	proc plm_audio_has_header(self: ptr plm_audio_t): cint		482
+nim	plm_audio_get_samplerate	mpeg/bindings.html#plm_audio_get_samplerate,ptr.plm_audio_t	proc plm_audio_get_samplerate(self: ptr plm_audio_t): cint		486
+nim	plm_audio_get_time	mpeg/bindings.html#plm_audio_get_time,ptr.plm_audio_t	proc plm_audio_get_time(self: ptr plm_audio_t): cdouble		489
+nim	plm_audio_set_time	mpeg/bindings.html#plm_audio_set_time,ptr.plm_audio_t,cdouble	proc plm_audio_set_time(self: ptr plm_audio_t; time: cdouble)		492
+nim	plm_audio_rewind	mpeg/bindings.html#plm_audio_rewind,ptr.plm_audio_t	proc plm_audio_rewind(self: ptr plm_audio_t)		495
+nim	plm_audio_has_ended	mpeg/bindings.html#plm_audio_has_ended,ptr.plm_audio_t	proc plm_audio_has_ended(self: ptr plm_audio_t): cint		498
+nim	plm_audio_decode	mpeg/bindings.html#plm_audio_decode,ptr.plm_audio_t	proc plm_audio_decode(self: ptr plm_audio_t): ptr plm_samples_t		501
 nim	frameToOpaqueRgba	mpeg/bindings.html#frameToOpaqueRgba,ptr.plm_frame_t,ptr.uint8,cint	proc frameToOpaqueRgba(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		64
 nim	plm_frame_to_rgb	mpeg/bindings.html#plm_frame_to_rgb,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_rgb(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		68
 nim	plm_frame_to_bgr	mpeg/bindings.html#plm_frame_to_bgr,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_bgr(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		71
@@ -110,7 +110,7 @@ nim	plm_frame_to_rgba	mpeg/bindings.html#plm_frame_to_rgba,ptr.plm_frame_t,ptr.u
 nim	plm_frame_to_bgra	mpeg/bindings.html#plm_frame_to_bgra,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_bgra(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		77
 nim	plm_frame_to_argb	mpeg/bindings.html#plm_frame_to_argb,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_argb(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		80
 nim	plm_frame_to_abgr	mpeg/bindings.html#plm_frame_to_abgr,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_abgr(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		83
-nim	plm_set_audio_enabled	mpeg/bindings.html#plm_set_audio_enabled,ptr.plm_t,cint,cint	proc plm_set_audio_enabled(decoder: ptr plm_t; enabled: cint; streamIndex: cint)		508
-nim	plm_frame_to_rgb	mpeg/bindings.html#plm_frame_to_rgb,ptr.plm_frame_t,ptr.uint8	proc plm_frame_to_rgb(frame: ptr plm_frame_t; rgb: ptr uint8)		517
+nim	plm_set_audio_enabled	mpeg/bindings.html#plm_set_audio_enabled,ptr.plm_t,cint,cint	proc plm_set_audio_enabled(decoder: ptr plm_t; enabled: cint; streamIndex: cint)		509
+nim	plm_frame_to_rgb	mpeg/bindings.html#plm_frame_to_rgb,ptr.plm_frame_t,ptr.uint8	proc plm_frame_to_rgb(frame: ptr plm_frame_t; rgb: ptr uint8)		518
 nimgrp	plmframetorgb	mpeg/bindings.html#plm_frame_to_rgb-procs-all	proc		68
-nimgrp	plmsetaudioenabled	mpeg/bindings.html#plm_set_audio_enabled-procs-all	proc		245
+nimgrp	plmsetaudioenabled	mpeg/bindings.html#plm_set_audio_enabled-procs-all	proc		246

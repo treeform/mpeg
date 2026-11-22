@@ -1,6 +1,6 @@
 ## Only this module is compiled for AVX2. Callers dispatch before entering it.
 import nimsimd/avx2
-import idct, profile
+import idct, profile, synthesis
 
 when defined(vcc):
   {.localPassC: "/arch:AVX2 /fp:strict".}
@@ -112,4 +112,19 @@ proc reconstructBlockAvx2*(coefficients: var array[64, cint], dst: ptr uint8,
     else: storeRows(true, false)
   elif predicted: storeRows(false, true)
   else: storeRows(false, false)
+
+proc synthesisWindowAvx2*(ring: array[1024, float32], window: array[512, float32],
+    vPos: int, samples: var array[32, float32]) =
+  ## Each tap contributes 32 successive samples. Preserve MP2's accumulation
+  ## order in each lane, including the rounding between multiply and add.
+  var sums: array[4, M256]
+  for lane in 0..<4:
+    sums[lane] = mm256_setzero_ps()
+  for w, v in synthesisTaps(vPos):
+    for lane in 0..<4:
+      let product = mm256_mul_ps(mm256_loadu_ps(unsafeAddr window[w + lane * 8]),
+                                 mm256_loadu_ps(unsafeAddr ring[v + lane * 8]))
+      sums[lane] = mm256_add_ps(sums[lane], product)
+  for lane in 0..<4:
+    mm256_storeu_ps(addr samples[lane * 8], sums[lane])
 {.pop.}

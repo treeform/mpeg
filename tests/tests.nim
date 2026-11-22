@@ -7,7 +7,7 @@ else:
   import mpeg/simd
   when buildAvx2:
     import std/random
-    import mpeg/[idct, kernels_avx2]
+    import mpeg/[idct, kernels_avx2, synthesis]
 
 const DataPath = currentSourcePath().parentDir / "data"
 
@@ -414,6 +414,20 @@ when not defined(mpegReference):
                 reconstructBlockAvx2(actualBlock, addr dest[1], stride, dcOnly, predicted)
                 check actualBlock == expectedBlock
                 check dest == expected
+
+      test "AVX2 synthesis preserves float rounding at every ring position":
+        if useAvx2:
+          var
+            rng = initRand(1152)
+            ring: array[1024, float32]
+            window: array[512, float32]
+            expected, actual: array[32, float32]
+          for value in ring.mitems: value = float32(rand(rng, -131072..131071)) / 17
+          for value in window.mitems: value = float32(rand(rng, -32768..32767)) / 19
+          for vPos in countup(0, 960, 64):
+            synthesisWindowPortable(ring, window, vPos, expected)
+            synthesisWindowAvx2(ring, window, vPos, actual)
+            check equalMem(addr expected, addr actual, sizeof(actual))
 
     test "PCM conversion reuses the supplied storage and reports samples written":
       let frame = AudioFrame(samples: @[-2.0'f32, -0.5, 0, 0.5, 2])

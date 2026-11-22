@@ -246,27 +246,20 @@ proc plm_audio_decode_header(self: ptr plm_audio_t): cint =
   let frameSize: cint = (144000 * bitrate div samplerate) + padding
   return frameSize - (if hasCRC != 0: 6 else: 4)
 
-# The ring position is a multiple of 64 in 0..960. Each window row starts
-# on a multiple of 32, so a full row fits both the 512-tap window and V.
+# Each of the 36 subblocks writes 32 samples into the 1152-sample MP2 frame.
 {.push checks: off.}
 proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int,
     duplicateMono: static bool = false) =
   profileScope("synthesize channel", detail = true)
   plm_audio_idct36(self.sample[ch], subblock, self.V[ch], self.vPos)
-  let
-    windowBase = 512 - (self.vPos shr 1)
-    phase = (self.vPos and 127) shr 1
   var accum: array[32, float32]
-  # Accumulate each half in stream order to preserve float rounding.
-  for half in 0..1:
-    let vBase = if half == 0: phase else: 96 - phase
-    for tap in 0 ..< 8:
-      let
-        w = (windowBase + half * 32 + tap * 64) and 511
-        v = vBase + tap * 128
-      for i in 0 ..< 32:
-        accum[i] += PLM_AUDIO_SYNTHESIS_WINDOW[w + i] * self.V[ch][v + i]
-  # 36 subblocks of 32 stereo samples fill the 1152-sample MP2 frame.
+  when buildAvx2:
+    if useAvx2:
+      synthesisWindowAvx2(self.V[ch], PLM_AUDIO_SYNTHESIS_WINDOW, self.vPos, accum)
+    else:
+      synthesisWindowPortable(self.V[ch], PLM_AUDIO_SYNTHESIS_WINDOW, self.vPos, accum)
+  else:
+    synthesisWindowPortable(self.V[ch], PLM_AUDIO_SYNTHESIS_WINDOW, self.vPos, accum)
   for i in 0 ..< 32:
     let sample = accum[i] / -1090519040.0'f32
     self.samples.interleaved[(outPos + i) * 2 + ch] = sample

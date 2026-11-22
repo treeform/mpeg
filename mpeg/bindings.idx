@@ -103,14 +103,14 @@ nim	plm_audio_set_time	mpeg/bindings.html#plm_audio_set_time,ptr.plm_audio_t,cdo
 nim	plm_audio_rewind	mpeg/bindings.html#plm_audio_rewind,ptr.plm_audio_t	proc plm_audio_rewind(self: ptr plm_audio_t)		494
 nim	plm_audio_has_ended	mpeg/bindings.html#plm_audio_has_ended,ptr.plm_audio_t	proc plm_audio_has_ended(self: ptr plm_audio_t): cint		497
 nim	plm_audio_decode	mpeg/bindings.html#plm_audio_decode,ptr.plm_audio_t	proc plm_audio_decode(self: ptr plm_audio_t): ptr plm_samples_t		500
-nim	frameToOpaqueRgba	mpeg/bindings.html#frameToOpaqueRgba,ptr.plm_frame_t,ptr.uint8,cint	proc frameToOpaqueRgba(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		50
-nim	plm_frame_to_rgb	mpeg/bindings.html#plm_frame_to_rgb,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_rgb(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		54
-nim	plm_frame_to_bgr	mpeg/bindings.html#plm_frame_to_bgr,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_bgr(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		57
-nim	plm_frame_to_rgba	mpeg/bindings.html#plm_frame_to_rgba,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_rgba(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		60
-nim	plm_frame_to_bgra	mpeg/bindings.html#plm_frame_to_bgra,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_bgra(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		63
-nim	plm_frame_to_argb	mpeg/bindings.html#plm_frame_to_argb,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_argb(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		66
-nim	plm_frame_to_abgr	mpeg/bindings.html#plm_frame_to_abgr,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_abgr(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		69
+nim	frameToOpaqueRgba	mpeg/bindings.html#frameToOpaqueRgba,ptr.plm_frame_t,ptr.uint8,cint	proc frameToOpaqueRgba(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		64
+nim	plm_frame_to_rgb	mpeg/bindings.html#plm_frame_to_rgb,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_rgb(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		68
+nim	plm_frame_to_bgr	mpeg/bindings.html#plm_frame_to_bgr,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_bgr(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		71
+nim	plm_frame_to_rgba	mpeg/bindings.html#plm_frame_to_rgba,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_rgba(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		74
+nim	plm_frame_to_bgra	mpeg/bindings.html#plm_frame_to_bgra,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_bgra(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		77
+nim	plm_frame_to_argb	mpeg/bindings.html#plm_frame_to_argb,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_argb(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		80
+nim	plm_frame_to_abgr	mpeg/bindings.html#plm_frame_to_abgr,ptr.plm_frame_t,ptr.uint8,cint	proc plm_frame_to_abgr(frame: ptr plm_frame_t; dest: ptr uint8; stride: cint)		83
 nim	plm_set_audio_enabled	mpeg/bindings.html#plm_set_audio_enabled,ptr.plm_t,cint,cint	proc plm_set_audio_enabled(decoder: ptr plm_t; enabled: cint; streamIndex: cint)		508
 nim	plm_frame_to_rgb	mpeg/bindings.html#plm_frame_to_rgb,ptr.plm_frame_t,ptr.uint8	proc plm_frame_to_rgb(frame: ptr plm_frame_t; rgb: ptr uint8)		517
-nimgrp	plmframetorgb	mpeg/bindings.html#plm_frame_to_rgb-procs-all	proc		54
+nimgrp	plmframetorgb	mpeg/bindings.html#plm_frame_to_rgb-procs-all	proc		68
 nimgrp	plmsetaudioenabled	mpeg/bindings.html#plm_set_audio_enabled-procs-all	proc		245

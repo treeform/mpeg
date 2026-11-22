@@ -1,0 +1,2 @@
+nimTitle	profile	mpeg/profile.html	module mpeg/profile		0
+nim	profileScope	mpeg/profile.html#profileScope.t,staticstring,staticbool	template profileScope(name: static string; detail: static bool = false)		11

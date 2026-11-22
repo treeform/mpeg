@@ -657,91 +657,56 @@ proc plm_video_decode_block(self: ptr plm_video_t, blockIndex: cint) =
   {.pop.}
   reset(self.blockData)
 
-# Both passes address the same fixed 8x8 coefficient block.
-{.push boundChecks: off.}
+# Two separable 8-point passes. Even at full int32 input magnitude, each
+# butterfly grows by less than 32x and the largest multiplier is 473.
+# Wide intermediates keep both passes within int64, including their products.
+{.push overflowChecks: off, boundChecks: off.}
 proc plm_video_idct(coefficients: var array[64, cint]) =
   profileScope("video IDCT", detail = true)
-  var b1: cint
-  var b3: cint
-  var b4: cint
-  var b6: cint
-  var b7: cint
-  var tmp1: cint
-  var tmp2: cint
-  var m0: cint
-  var x0: cint
-  var x1: cint
-  var x2: cint
-  var x3: cint
-  var x4: cint
-  var y3: cint
-  var y4: cint
-  var y5: cint
-  var y6: cint
-  var y7: cint
-  # Transform columns
-  for i in 0 ..< 8:
-    # A column without AC coefficients transforms to eight copies of its DC.
-    if (coefficients[8 + i] or coefficients[16 + i] or coefficients[24 + i] or
-        coefficients[32 + i] or coefficients[40 + i] or coefficients[48 + i] or
-        coefficients[56 + i]) == 0:
-      for row in 1 ..< 8:
-        coefficients[row * 8 + i] = coefficients[i]
-      continue
-    b1 = coefficients[4 * 8 + i]
-    b3 = coefficients[2 * 8 + i] + coefficients[6 * 8 + i]
-    b4 = coefficients[5 * 8 + i] - coefficients[3 * 8 + i]
-    tmp1 = coefficients[1 * 8 + i] + coefficients[7 * 8 + i]
-    tmp2 = coefficients[3 * 8 + i] + coefficients[5 * 8 + i]
-    b6 = coefficients[1 * 8 + i] - coefficients[7 * 8 + i]
-    b7 = tmp1 + tmp2
-    m0 = coefficients[0 * 8 + i]
-    x4 = ((b6 * 473 - b4 * 196 + 128) shr 8) - b7
-    x0 = x4 - (((tmp1 - tmp2) * 362 + 128) shr 8)
-    x1 = m0 - b1
-    x2 = (((coefficients[2 * 8 + i] - coefficients[6 * 8 + i]) * 362 + 128) shr 8) - b3
-    x3 = m0 + b1
-    y3 = x1 + x2
-    y4 = x3 + b3
-    y5 = x1 - x2
-    y6 = x3 - b3
-    y7 = -x0 - ((b4 * 473 + b6 * 196 + 128) shr 8)
-    coefficients[0 * 8 + i] = b7 + y4
-    coefficients[1 * 8 + i] = x4 + y3
-    coefficients[2 * 8 + i] = y5 - x0
-    coefficients[3 * 8 + i] = y6 - y7
-    coefficients[4 * 8 + i] = y6 + y7
-    coefficients[5 * 8 + i] = x0 + y5
-    coefficients[6 * 8 + i] = y3 - x4
-    coefficients[7 * 8 + i] = y4 - b7
-  # Transform rows
-  var i: cint = 0
-  while i < 64:
-    b1 = coefficients[4 + i]
-    b3 = coefficients[2 + i] + coefficients[6 + i]
-    b4 = coefficients[5 + i] - coefficients[3 + i]
-    tmp1 = coefficients[1 + i] + coefficients[7 + i]
-    tmp2 = coefficients[3 + i] + coefficients[5 + i]
-    b6 = coefficients[1 + i] - coefficients[7 + i]
-    b7 = tmp1 + tmp2
-    m0 = coefficients[0 + i]
-    x4 = ((b6 * 473 - b4 * 196 + 128) shr 8) - b7
-    x0 = x4 - (((tmp1 - tmp2) * 362 + 128) shr 8)
-    x1 = m0 - b1
-    x2 = (((coefficients[2 + i] - coefficients[6 + i]) * 362 + 128) shr 8) - b3
-    x3 = m0 + b1
-    y3 = x1 + x2
-    y4 = x3 + b3
-    y5 = x1 - x2
-    y6 = x3 - b3
-    y7 = -x0 - ((b4 * 473 + b6 * 196 + 128) shr 8)
-    coefficients[0 + i] = (b7 + y4 + 128) shr 8
-    coefficients[1 + i] = (x4 + y3 + 128) shr 8
-    coefficients[2 + i] = (y5 - x0 + 128) shr 8
-    coefficients[3 + i] = (y6 - y7 + 128) shr 8
-    coefficients[4 + i] = (y6 + y7 + 128) shr 8
-    coefficients[5 + i] = (x0 + y5 + 128) shr 8
-    coefficients[6 + i] = (y3 - x4 + 128) shr 8
-    coefficients[7 + i] = (y4 - b7 + 128) shr 8
-    i += 8
+  var columns {.noinit.}: array[64, int64]
+
+  template transform(column: static bool, base: int) =
+    template get(k: static int): int64 =
+      when column: int64(coefficients[base + 8 * k])
+      else: columns[base + k]
+    template put(k: static int, value: int64) =
+      when column: columns[base + 8 * k] = value
+      else: coefficients[base + k] = cint((value + 128) shr 8)
+    let
+      b1 = get(4)
+      b3 = get(2) + get(6)
+      b4 = get(5) - get(3)
+      tmp1 = get(1) + get(7)
+      tmp2 = get(3) + get(5)
+      b6 = get(1) - get(7)
+      b7 = tmp1 + tmp2
+      x4 = ((b6 * 473 - b4 * 196 + 128) shr 8) - b7
+      x0 = x4 - (((tmp1 - tmp2) * 362 + 128) shr 8)
+      x1 = get(0) - b1
+      x2 = (((get(2) - get(6)) * 362 + 128) shr 8) - b3
+      x3 = get(0) + b1
+      y3 = x1 + x2
+      y4 = x3 + b3
+      y5 = x1 - x2
+      y6 = x3 - b3
+      y7 = -x0 - ((b4 * 473 + b6 * 196 + 128) shr 8)
+    put(0, b7 + y4)
+    put(1, x4 + y3)
+    put(2, y5 - x0)
+    put(3, y6 - y7)
+    put(4, y6 + y7)
+    put(5, x0 + y5)
+    put(6, y3 - x4)
+    put(7, y4 - b7)
+
+  for col in 0..<8:
+    if (coefficients[8 + col] or coefficients[16 + col] or coefficients[24 + col] or
+        coefficients[32 + col] or coefficients[40 + col] or coefficients[48 + col] or
+        coefficients[56 + col]) == 0:
+      for row in 0..<8:
+        columns[8 * row + col] = int64(coefficients[col])
+    else:
+      transform(true, col)
+  for row in 0..<8:
+    transform(false, 8 * row)
 {.pop.}

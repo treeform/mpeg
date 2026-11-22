@@ -152,8 +152,13 @@ proc decodeAudio*(decoder: Decoder, frame: var AudioFrame): bool
   )
   return true
 
+proc pcm16*(frame: AudioFrame, dest: var openArray[int16]): int {.raises: [].} =
+  ## Writes clipped PCM samples and returns the number that fit in dest.
+  result = min(frame.samples.len, dest.len)
+  for i in 0 ..< result:
+    dest[i] = int16(round(clamp(frame.samples[i], -1.0'f, 1.0'f) * 32767.0'f))
+
 proc pcm16*(frame: AudioFrame): seq[int16] {.raises: [].} =
-  ## Converts audio to signed 16-bit stereo PCM with clipping at full scale.
+  ## Returns an owned copy of the frame as signed 16-bit stereo PCM.
   result.setLen(frame.samples.len)
-  for i, sample in frame.samples:
-    result[i] = int16(round(clamp(sample, -1.0'f, 1.0'f) * 32767.0'f))
+  discard frame.pcm16(result)

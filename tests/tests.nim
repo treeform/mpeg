@@ -379,6 +379,15 @@ suite "PL_MPEG native API":
 
 when not defined(mpegReference):
   suite "Native Nim regressions":
+    test "PCM conversion reuses the supplied storage and reports samples written":
+      let frame = AudioFrame(samples: @[-2.0'f32, -0.5, 0, 0.5, 2])
+      var dest = [0'i16, 0, 0, 0, 0, 123]
+      check frame.pcm16(dest) == 5
+      check dest == [-32767'i16, -16384, 0, 16384, 32767, 123]
+      check frame.pcm16(dest.toOpenArray(1, 2)) == 2
+      check dest[1..2] == [-32767'i16, -16384]
+      check AudioFrame().pcm16(dest) == 0
+
     test "all six pixel layouts respect odd dimensions, alpha, and stride":
       type ConvertPixels = proc(frame: ptr plm_frame_t, dest: ptr uint8,
           stride: cint) {.cdecl, raises: [].}

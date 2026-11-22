@@ -5,12 +5,14 @@ import
 const BufferCount = 32
 
 type
-  Speaker* = object
+  Speaker* = ref object
     device: ALCdevice
     context: ALCcontext
     source: ALuint
     buffers: array[BufferCount, ALuint]
-    free: seq[ALuint]
+    free: array[BufferCount, ALuint]
+    freeCount: int
+    pcm: array[PlmAudioSamplesPerFrame * 2, int16]
     rate: int
     queued*: int
     playedSamples*: int
@@ -26,8 +28,10 @@ proc checkAudio() =
   if error != AL_NO_ERROR:
     raise newException(MpegError, "OpenAL error " & $error & ".")
 
-proc close*(speaker: var Speaker) =
+proc close*(speaker: Speaker) =
   ## Releases queued buffers, the source, and the output device.
+  if speaker == nil:
+    return
   if speaker.source != 0:
     alSourceStop(speaker.source)
     alDeleteSources(1, addr speaker.source)
@@ -43,6 +47,7 @@ proc close*(speaker: var Speaker) =
 
 proc initSpeaker*(decoder: Decoder): Speaker =
   ## Opens the default physical audio output with a bounded stereo queue.
+  new(result)
   result.rate = decoder.sampleRate
   if result.rate == 0:
     raise newException(MpegError, "The MPEG file has no audio stream.")
@@ -56,34 +61,36 @@ proc initSpeaker*(decoder: Decoder): Speaker =
     alGenSources(1, addr result.source)
     alGenBuffers(BufferCount, addr result.buffers[0])
     checkAudio()
-    for buffer in result.buffers:
-      result.free.add(buffer)
+    result.free = result.buffers
+    result.freeCount = BufferCount
     echo "Audio device: ", $alcGetString(result.device, ALC_DEVICE_SPECIFIER)
   except:
     result.close()
     raise
 
-proc pump*(speaker: var Speaker, decoder: Decoder) =
+proc pump*(speaker: Speaker, decoder: Decoder) =
   ## Reclaims played buffers, fills available slots, and starts playback.
   var processed: ALint
   alGetSourcei(speaker.source, AL_BUFFERS_PROCESSED, addr processed)
   for i in 0 ..< int(processed):
     var buffer: ALuint
     alSourceUnqueueBuffers(speaker.source, 1, addr buffer)
-    speaker.free.add(buffer)
+    speaker.free[speaker.freeCount] = buffer
+    inc speaker.freeCount
     dec speaker.queued
     speaker.playedSamples += PlmAudioSamplesPerFrame
-  while speaker.free.len > 0 and not speaker.ended:
+  while speaker.freeCount > 0 and not speaker.ended:
     if not decoder.decodeAudio(speaker.frame):
       speaker.ended = true
       break
-    var buffer = speaker.free.pop()
-    let pcm = speaker.frame.pcm16
+    dec speaker.freeCount
+    var buffer = speaker.free[speaker.freeCount]
+    let written = speaker.frame.pcm16(speaker.pcm)
     alBufferData(
       buffer,
       AL_FORMAT_STEREO16,
-      unsafeAddr pcm[0],
-      ALsizei(pcm.len * sizeof(int16)),
+      addr speaker.pcm[0],
+      ALsizei(written * sizeof(int16)),
       ALsizei(speaker.rate)
     )
     alSourceQueueBuffers(speaker.source, 1, addr buffer)

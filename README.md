@@ -64,15 +64,17 @@ block:
   decoder.videoEnabled = false
 
   var frame: AudioFrame
+  var pcm: array[PlmAudioSamplesPerFrame * 2, int16]
   while decoder.decodeAudio(frame):
-    let pcm = frame.pcm16()
-    echo frame.sampleRate, " Hz, ", pcm.len div 2, " stereo sample frames"
+    let written = frame.pcm16(pcm)
+    echo frame.sampleRate, " Hz, ", written div 2, " stereo sample frames"
     # Queue pcm to a stereo sound device running at frame.sampleRate.
 ```
 
 Each MP2 packet produces 1152 sample frames. `samples` contains 2304 float32
 values, alternating left and right. Mono input is duplicated into both channels.
-`pcm16` clips to signed 16-bit PCM in native byte order.
+`pcm16` clips to signed 16-bit PCM in native byte order. Pass a reusable
+destination for playback, or call `frame.pcm16()` to obtain an owned sequence.
 
 Disable streams you do not consume. Otherwise the demuxer buffers them while
 decoding the other stream. For audio and video together, consume both regularly

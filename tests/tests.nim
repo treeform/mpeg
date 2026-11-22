@@ -4,6 +4,10 @@ when defined(mpegReference):
   import reference/mpeg
 else:
   import mpeg
+  import mpeg/simd
+  when buildAvx2:
+    import std/random
+    import mpeg/[idct, kernels_avx2]
 
 const DataPath = currentSourcePath().parentDir / "data"
 
@@ -379,6 +383,38 @@ suite "PL_MPEG native API":
 
 when not defined(mpegReference):
   suite "Native Nim regressions":
+    when buildAvx2:
+      test "AVX2 reconstruction matches portable residuals and preserves row padding":
+        if useAvx2:
+          var rng = initRand(847)
+          const stride = 13
+          for trial in 0..<64:
+            var input: array[64, cint]
+            for value in input.mitems:
+              value = cint(rand(rng, -2048..2047) * rand(rng, 1..62))
+            input[0] = [low(cint), high(cint), -257, -128, 0, 127, 128, 65535][trial mod 8]
+            for dcOnly in [false, true]:
+              for predicted in [false, true]:
+                var
+                  actualBlock = input
+                  expectedBlock = input
+                  dest: array[8 * stride + 2, uint8]
+                for p in dest.mitems: p = uint8(rand(rng, 255))
+                var expected = dest
+                if dcOnly:
+                  expectedBlock[0] = cint((int64(input[0]) + 128) shr 8)
+                else:
+                  idctPortable(expectedBlock)
+                for row in 0..<8:
+                  for col in 0..<8:
+                    let offset = 1 + row * stride + col
+                    var pixel = expectedBlock[if dcOnly: 0 else: row * 8 + col]
+                    if predicted: pixel += cint(expected[offset])
+                    expected[offset] = uint8(clamp(pixel, 0, 255))
+                reconstructBlockAvx2(actualBlock, addr dest[1], stride, dcOnly, predicted)
+                check actualBlock == expectedBlock
+                check dest == expected
+
     test "PCM conversion reuses the supplied storage and reports samples written":
       let frame = AudioFrame(samples: @[-2.0'f32, -0.5, 0, 0.5, 2])
       var dest = [0'i16, 0, 0, 0, 0, 123]

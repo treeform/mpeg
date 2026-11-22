@@ -184,7 +184,7 @@ type
   plm_buffer_mode = enum
     PLM_BUFFER_MODE_FILE, PLM_BUFFER_MODE_FIXED_MEM, PLM_BUFFER_MODE_RING, PLM_BUFFER_MODE_APPEND
 
-import profile, simd
+import idct, profile, simd
 when buildAvx2:
   import kernels_avx2
 include memory

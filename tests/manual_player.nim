@@ -72,8 +72,10 @@ proc main() =
       window.swapBuffers()
     if not pending and (not hasAudio or speaker.finished) and not finished:
       finished = true
-      echo "Displayed ", displayed, " frames; audio sample frames played: ",
-        speaker.playedSamples, "; underruns: ", speaker.underruns, "."
+      echo "Displayed ", displayed, " video frames."
+      if hasAudio:
+        echo "Played ", speaker.playedSamples, " stereo sample frames with ",
+          speaker.underruns, " underruns."
       if not hold:
         break
     sleep(5)

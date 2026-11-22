@@ -140,6 +140,7 @@ type
 
   plm_quantizer_spec_t = object
     levels: uint16
+    scale: uint16
     group: uint8
     bits: uint8
 

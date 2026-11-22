@@ -21,7 +21,13 @@ const PLM_AUDIO_SAMPLE_RATE: array[8, uint16] = [44100, 48000, 32000, 0, 22050, 
 const PLM_AUDIO_BIT_RATE: array[28, int16] = [32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224,
     256, 320, 384, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]
 
-const PLM_AUDIO_SCALEFACTOR_BASE: array[3, cint] = [0x02000000, 0x01965FEA, 0x01428A30]
+const scaleFactors = block:
+  const bases = [0x02000000'i32, 0x01965FEA, 0x01428A30]
+  var factors: array[64, cint]
+  for i in 0..<63: # Index 63 represents silence.
+    let shift = i div 3
+    factors[i] = (bases[i mod 3] + ((1'i32 shl shift) shr 1)) shr shift
+  factors
 
 const PLM_AUDIO_SYNTHESIS_WINDOW: array[512, float32] = [0.0'f32, -0.5'f32, -0.5'f32, -0.5'f32,
     -0.5'f32, -0.5'f32, -0.5'f32, -1.0'f32, -1.0'f32, -1.0'f32, -1.0'f32, -1.5'f32, -1.5'f32,
@@ -113,18 +119,16 @@ const PLM_AUDIO_QUANT_LUT_STEP_4: array[6, array[16, uint8]] = [[0, 1, 2, 17, 0,
     2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
     13, 14, 15]]
 
-let PLM_AUDIO_QUANT_TAB: array[17, plm_quantizer_spec_t] = [plm_quantizer_spec_t(levels: 3,
-    group: 1, bits: 5), plm_quantizer_spec_t(levels: 5, group: 1, bits: 7), plm_quantizer_spec_t(
-    levels: 7, group: 0, bits: 3), plm_quantizer_spec_t(levels: 9, group: 1, bits: 10),
-    plm_quantizer_spec_t(levels: 15, group: 0, bits: 4), plm_quantizer_spec_t(levels: 31,
-    group: 0, bits: 5), plm_quantizer_spec_t(levels: 63, group: 0, bits: 6), plm_quantizer_spec_t(
-    levels: 127, group: 0, bits: 7), plm_quantizer_spec_t(levels: 255, group: 0, bits: 8),
-    plm_quantizer_spec_t(levels: 511, group: 0, bits: 9), plm_quantizer_spec_t(levels: 1023,
-    group: 0, bits: 10), plm_quantizer_spec_t(levels: 2047, group: 0, bits: 11),
-    plm_quantizer_spec_t(levels: 4095, group: 0, bits: 12), plm_quantizer_spec_t(levels: 8191,
-    group: 0, bits: 13), plm_quantizer_spec_t(levels: 16383, group: 0, bits: 14),
-    plm_quantizer_spec_t(levels: 32767, group: 0, bits: 15), plm_quantizer_spec_t(levels: 65535,
-    group: 0, bits: 16)]
+func quantizer(levels, bits: int, grouped: bool = false): plm_quantizer_spec_t =
+  plm_quantizer_spec_t(levels: uint16(levels), bits: uint8(bits),
+    group: uint8(grouped), scale: uint16(65536 div (levels + 1)))
+
+let PLM_AUDIO_QUANT_TAB = [
+  quantizer(3, 5, true), quantizer(5, 7, true), quantizer(7, 3),
+  quantizer(9, 10, true), quantizer(15, 4), quantizer(31, 5), quantizer(63, 6),
+  quantizer(127, 7), quantizer(255, 8), quantizer(511, 9), quantizer(1023, 10),
+  quantizer(2047, 11), quantizer(4095, 12), quantizer(8191, 13),
+  quantizer(16383, 14), quantizer(32767, 15), quantizer(65535, 16)]
 
 proc plm_audio_create_with_buffer*(buffer: ptr plm_buffer_t,
     destroyWhenDone: cint): ptr plm_audio_t =
@@ -245,7 +249,8 @@ proc plm_audio_decode_header(self: ptr plm_audio_t): cint =
 # The ring position is a multiple of 64 in 0..960. Each window row starts
 # on a multiple of 32, so a full row fits both the 512-tap window and V.
 {.push checks: off.}
-proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int) =
+proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int,
+    duplicateMono: static bool = false) =
   plm_audio_idct36(self.sample[ch], subblock, self.V[ch], self.vPos)
   let
     windowBase = 512 - (self.vPos shr 1)
@@ -262,7 +267,10 @@ proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int) =
         accum[i] += PLM_AUDIO_SYNTHESIS_WINDOW[w + i] * self.V[ch][v + i]
   # 36 subblocks of 32 stereo samples fill the 1152-sample MP2 frame.
   for i in 0 ..< 32:
-    self.samples.interleaved[(outPos + i) * 2 + ch] = accum[i] / -1090519040.0'f32
+    let sample = accum[i] / -1090519040.0'f32
+    self.samples.interleaved[(outPos + i) * 2 + ch] = sample
+    when duplicateMono:
+      self.samples.interleaved[(outPos + i) * 2 + 1] = sample
 {.pop.}
 
 proc plm_audio_decode_frame(self: ptr plm_audio_t) =
@@ -289,8 +297,6 @@ proc plm_audio_decode_frame(self: ptr plm_audio_t) =
     for ch in 0 ..< channels:
       if self.allocation[ch][sb] != nil:
         self.scaleFactorInfo[ch][sb] = uint8(plm_buffer_read(self.buffer, 2))
-    if self.mode == PLM_AUDIO_MODE_MONO:
-      self.scaleFactorInfo[1][sb] = self.scaleFactorInfo[0][sb]
   # Read scale factors
   for sb in 0 ..< sblimit:
     for ch in 0 ..< channels:
@@ -314,28 +320,38 @@ proc plm_audio_decode_frame(self: ptr plm_audio_t) =
           sf[2] = plm_buffer_read(self.buffer, 6)
           sf[1] = sf[2]
         else: discard
-    if self.mode == PLM_AUDIO_MODE_MONO:
-      self.scaleFactor[1][sb] = self.scaleFactor[0][sb]
+  # Bit allocation is fixed for the frame. Clear silent bands once and visit
+  # occupied channel/subband pairs in their encoded order for each granule.
+  reset self.sample
+  var
+    active: array[64, tuple[ch, sb: uint8]]
+    activeCount = 0
+  for sb in 0 ..< sblimit:
+    let codedChannels = if sb < self.bound: 2 else: 1
+    for ch in 0 ..< codedChannels:
+      if self.allocation[ch][sb] != nil:
+        active[activeCount] = (uint8(ch), uint8(sb))
+        inc activeCount
   # Coefficient input and reconstruction
   var outPos: cint = 0
   for part in 0'i32 ..< 3:
     for granule in 0 ..< 4:
-      # Read the samples
-      for sb in 0 ..< self.bound:
-        plm_audio_read_samples(self, 0, sb, part)
-        plm_audio_read_samples(self, 1, sb, part)
-      for sb in self.bound ..< sblimit:
-        plm_audio_read_samples(self, 0, sb, part)
-        self.sample[1][sb] = self.sample[0][sb]
-      for sb in sblimit ..< 32:
-        reset self.sample[0][sb]
-        reset self.sample[1][sb]
+      for i in 0 ..< activeCount:
+        let band = active[i]
+        plm_audio_read_samples(self, cint(band.ch), cint(band.sb), part)
+      if channels == 2 and self.bound < sblimit:
+        # Joint-stereo bands carry a single coded sample triplet.
+        copyMem(addr self.sample[1][self.bound], addr self.sample[0][self.bound],
+          (sblimit - self.bound) * sizeof(self.sample[0][0]))
       # Synthesis loop
       for p in 0 ..< 3:
         # Shifting step
         self.vPos = (self.vPos - 64) and 1023
-        for ch in 0 ..< 2:
-          synthesizeChannel(self, ch, p, outPos)
+        if channels == 1:
+          synthesizeChannel(self, 0, p, outPos, duplicateMono = true)
+        else:
+          synthesizeChannel(self, 0, p, outPos)
+          synthesizeChannel(self, 1, p, outPos)
         outPos += 32
   plm_buffer_align(self.buffer)
 
@@ -347,44 +363,28 @@ proc plm_audio_read_allocation(self: ptr plm_audio_t, sb: cint,
 
 proc plm_audio_read_samples(self: ptr plm_audio_t, ch: cint, sb: cint, part: cint) =
   let q = self.allocation[ch][sb]
-  var sf: cint = self.scaleFactor[ch][sb][part]
   let sample = addr(self.sample[ch][sb][0])
-  var val: cint = 0
-  if q == nil:
-    # No bits allocated for this subband
-    sample[2] = 0
-    sample[1] = sample[2]
-    sample[0] = sample[1]
-    return
-  # Resolve scalefactor
-  if sf == 63:
-    sf = 0
-  else:
-    let shift: cint = sf div 3
-    sf = (PLM_AUDIO_SCALEFACTOR_BASE[sf mod 3] + ((1'i32 shl shift) shr 1)) shr shift
+  let sf = scaleFactors[self.scaleFactor[ch][sb][part]]
   # Decode samples
-  var adj: cint = cint(q.levels)
+  let levels = cint(q.levels)
   if q.group != 0:
     # Decode grouped samples
-    val = plm_buffer_read(self.buffer, cint(q.bits))
-    sample[0] = val mod adj
-    val = val div adj
-    sample[1] = val mod adj
-    sample[2] = val div adj
+    let packed = plm_buffer_read(self.buffer, cint(q.bits))
+    sample[0] = packed mod levels
+    let upper = packed div levels
+    sample[1] = upper mod levels
+    sample[2] = upper div levels
   else:
     # Decode direct samples
     sample[0] = plm_buffer_read(self.buffer, cint(q.bits))
     sample[1] = plm_buffer_read(self.buffer, cint(q.bits))
     sample[2] = plm_buffer_read(self.buffer, cint(q.bits))
   # Postmultiply samples
-  let scale: cint = 65536 div (adj + 1)
-  adj = ((adj + 1) shr 1) - 1
-  val = (adj - sample[0]) * scale
-  sample[0] = (val * (sf shr 12) + ((val * (sf and 4095) + 2048) shr 12)) shr 12
-  val = (adj - sample[1]) * scale
-  sample[1] = (val * (sf shr 12) + ((val * (sf and 4095) + 2048) shr 12)) shr 12
-  val = (adj - sample[2]) * scale
-  sample[2] = (val * (sf shr 12) + ((val * (sf and 4095) + 2048) shr 12)) shr 12
+  let midpoint = (levels - 1) shr 1
+  for i in 0..<3:
+    let centered = (midpoint - sample[i]) * cint(q.scale)
+    # A wide product combines the two 12-bit fixed-point shifts exactly.
+    sample[i] = cint((int64(centered) * sf + 2048) shr 24)
 
 # Only the synthesis loop calls this transform: ss is 0..2 and the 64
 # output slots beginning at dp fit in the 1024-sample ring.

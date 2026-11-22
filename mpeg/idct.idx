@@ -1,0 +1,3 @@
+nimTitle	idct	mpeg/idct.html	module mpeg/idct		0
+nim	idctPass	mpeg/idct.html#idctPass.t,untyped,untyped	template idctPass(get, put: untyped)		2
+nim	idctPortable	mpeg/idct.html#idctPortable,array[,cint]	proc idctPortable(coefficients: var array[64, cint])		39

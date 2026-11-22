@@ -28,7 +28,7 @@
     <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
       <h1 class="title">Index</h1>
-      Modules: <a href="mpeg.html">mpeg</a>, <a href="mpeg/bindings.html">mpeg/bindings</a>, <a href="mpeg/decoders.html">mpeg/decoders</a>, <a href="mpeg/profile.html">mpeg/profile</a>.<br/><p /><h2>API symbols</h2>
+      Modules: <a href="mpeg.html">mpeg</a>, <a href="mpeg/bindings.html">mpeg/bindings</a>, <a href="mpeg/decoders.html">mpeg/decoders</a>, <a href="mpeg/idct.html">mpeg/idct</a>, <a href="mpeg/kernels_avx2.html">mpeg/kernels_avx2</a>, <a href="mpeg/profile.html">mpeg/profile</a>, <a href="mpeg/simd.html">mpeg/simd</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="audioEnabled%3D" href="#audioEnabled%3D"><span>audioEnabled=:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc audioEnabled=(decoder: Decoder; enabled: bool)" href="mpeg/decoders.html#audioEnabled%3D%2CDecoder%2Cbool">decoders: proc audioEnabled=(decoder: Decoder; enabled: bool)</a></li>
@@ -36,6 +36,10 @@
 <dt><a name="AudioFrame" href="#AudioFrame"><span>AudioFrame:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: object AudioFrame" href="mpeg/decoders.html#AudioFrame">decoders: object AudioFrame</a></li>
+          </ul></dd>
+<dt><a name="buildAvx2" href="#buildAvx2"><span>buildAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="simd: const buildAvx2" href="mpeg/simd.html#buildAvx2">simd: const buildAvx2</a></li>
           </ul></dd>
 <dt><a name="close" href="#close"><span>close:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -73,6 +77,14 @@
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc height(decoder: Decoder): int" href="mpeg/decoders.html#height%2CDecoder">decoders: proc height(decoder: Decoder): int</a></li>
           </ul></dd>
+<dt><a name="idctPass" href="#idctPass"><span>idctPass:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="idct: template idctPass(get, put: untyped)" href="mpeg/idct.html#idctPass.t%2Cuntyped%2Cuntyped">idct: template idctPass(get, put: untyped)</a></li>
+          </ul></dd>
+<dt><a name="idctPortable" href="#idctPortable"><span>idctPortable:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="idct: proc idctPortable(coefficients: var array[64, cint])" href="mpeg/idct.html#idctPortable%2Carray%5B%2Ccint%5D">idct: proc idctPortable(coefficients: var array[64, cint])</a></li>
+          </ul></dd>
 <dt><a name="MpegError" href="#MpegError"><span>MpegError:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: object MpegError" href="mpeg/decoders.html#MpegError">decoders: object MpegError</a></li>
@@ -80,6 +92,10 @@
 <dt><a name="newMpeg" href="#newMpeg"><span>newMpeg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc newMpeg(data: string): Decoder" href="mpeg/decoders.html#newMpeg%2Cstring">decoders: proc newMpeg(data: string): Decoder</a></li>
+          </ul></dd>
+<dt><a name="opaqueRgbaRowsAvx2" href="#opaqueRgbaRowsAvx2"><span>opaqueRgbaRowsAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="kernels_avx2: proc opaqueRgbaRowsAvx2(y0, y1, cb, cr, dest0, dest1: ptr uint8; width: int)" href="mpeg/kernels_avx2.html#opaqueRgbaRowsAvx2%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cint">kernels_avx2: proc opaqueRgbaRowsAvx2(y0, y1, cb, cr, dest0, dest1: ptr uint8; width: int)</a></li>
           </ul></dd>
 <dt><a name="openMpeg" href="#openMpeg"><span>openMpeg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -559,6 +575,12 @@
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc raw(decoder: Decoder): ptr plm_t" href="mpeg/decoders.html#raw%2CDecoder">decoders: proc raw(decoder: Decoder): ptr plm_t</a></li>
           </ul></dd>
+<dt><a name="reconstructBlockAvx2" href="#reconstructBlockAvx2"><span>reconstructBlockAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="kernels_avx2: proc reconstructBlockAvx2(coefficients: var array[64, cint]; dst: ptr uint8;
+                     stride: int; dcOnly, predicted: bool)" href="mpeg/kernels_avx2.html#reconstructBlockAvx2%2Carray%5B%2Ccint%5D%2Cptr.uint8%2Cint%2Cbool%2Cbool">kernels_avx2: proc reconstructBlockAvx2(coefficients: var array[64, cint]; dst: ptr uint8;
+                     stride: int; dcOnly, predicted: bool)</a></li>
+          </ul></dd>
 <dt><a name="rewind" href="#rewind"><span>rewind:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc rewind(decoder: Decoder)" href="mpeg/decoders.html#rewind%2CDecoder">decoders: proc rewind(decoder: Decoder)</a></li>
@@ -566,6 +588,10 @@
 <dt><a name="sampleRate" href="#sampleRate"><span>sampleRate:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc sampleRate(decoder: Decoder): int" href="mpeg/decoders.html#sampleRate%2CDecoder">decoders: proc sampleRate(decoder: Decoder): int</a></li>
+          </ul></dd>
+<dt><a name="useAvx2" href="#useAvx2"><span>useAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="simd: let useAvx2" href="mpeg/simd.html#useAvx2">simd: let useAvx2</a></li>
           </ul></dd>
 <dt><a name="videoEnabled%3D" href="#videoEnabled%3D"><span>videoEnabled=:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -583,7 +609,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 18:37:12 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 18:37:19 UTC</small>
       </div>
     </div>
   </div>

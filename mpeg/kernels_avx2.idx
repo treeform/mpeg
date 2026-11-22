@@ -1,0 +1,3 @@
+nimTitle	kernels_avx2	mpeg/kernels_avx2.html	module mpeg/kernels_avx2		0
+nim	opaqueRgbaRowsAvx2	mpeg/kernels_avx2.html#opaqueRgbaRowsAvx2,ptr.uint8,ptr.uint8,ptr.uint8,ptr.uint8,ptr.uint8,ptr.uint8,int	proc opaqueRgbaRowsAvx2(y0, y1, cb, cr, dest0, dest1: ptr uint8; width: int)		13
+nim	reconstructBlockAvx2	mpeg/kernels_avx2.html#reconstructBlockAvx2,array[,cint],ptr.uint8,int,bool,bool	proc reconstructBlockAvx2(coefficients: var array[64, cint]; dst: ptr uint8;\n                     stride: int; dcOnly, predicted: bool)		90

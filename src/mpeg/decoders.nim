@@ -43,7 +43,7 @@ proc close*(decoder: Decoder) {.raises: [].} =
     decoder[].release()
 
 proc raw*(decoder: Decoder): ptr plm_t {.raises: [MpegError].} =
-  ## Borrows the C handle until close; the caller must not destroy it.
+  ## Borrows the decoder handle until close; the caller must not destroy it.
   if decoder == nil or decoder.handle == nil:
     raise newException(MpegError, "The MPEG decoder is closed.")
   return decoder.handle

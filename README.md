@@ -14,17 +14,16 @@
 
 ## About
 
-Mpeg wraps [PL_MPEG](https://github.com/phoboslab/pl_mpeg) and compiles its
-bundled C decoder directly into your application. The core library depends
-only on Nim's standard library and the C toolchain used by Nim.
+Mpeg decodes video and audio entirely in Nim, using only the standard library.
+The decoder is a port of [PL_MPEG](https://github.com/phoboslab/pl_mpeg).
 
 - MPEG-1 video and MPEG-PS container decoding.
 - MP2 audio as interleaved stereo float32 samples.
 - File and memory inputs with automatic cleanup and explicit `close`.
 - Reusable RGBA frame buffers and signed 16-bit audio conversion.
-- Direct C bindings for timed callbacks, seeking, looping, and custom input.
+- Low-level Nim API for timed callbacks, seeking, looping, and custom input.
 
-> **AI disclaimer: Parts of the Nim wrapper and test suite were AI generated.**
+> **AI disclaimer: Parts of the Nim decoder and test suite were AI generated.**
 
 The decoder produces pixels and samples. Your application owns presentation,
 the sound device, and playback timing. Optional manual players demonstrate
@@ -83,7 +82,7 @@ and use the sound device's playback position as the presentation clock.
 or cannot be decoded. Upstream does not distinguish corrupt data from EOF.
 Use this library for known MPEG-1/MP2 inputs, not as a general media validator.
 
-## Direct bindings
+## Low-level API
 
 All `plm_*` functions remain available through `import mpeg`. `decoder.raw`
 borrows the handle for an owned Nim decoder. Do not destroy that borrowed handle.
@@ -100,8 +99,8 @@ returns no value. Use callbacks or `plm_has_ended` to track progress. The old
 three-argument `plm_set_audio_enabled` and two-argument `plm_frame_to_rgb`
 calls remain available as compatibility overloads.
 
-The bundled revision and local EOF fix are recorded in
-[UPSTREAM.md](src/mpeg/UPSTREAM.md). Decoder-only source remains C.
+The original revision, credits, and local decoding changes are recorded in
+[UPSTREAM.md](src/mpeg/UPSTREAM.md).
 
 ## Encoding
 

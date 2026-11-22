@@ -1,6 +1,6 @@
 version = "0.2.0"
 author = "treeform"
-description = "MPEG-1 video and MP2 audio decoding with bundled PL_MPEG."
+description = "MPEG-1 video and MP2 audio decoding in Nim."
 license = "MIT"
 srcDir = "src"
 

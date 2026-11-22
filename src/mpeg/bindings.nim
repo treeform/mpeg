@@ -1,11 +1,6 @@
-## Direct bindings to the bundled PL_MPEG decoder.
-## Returned frame and sample pointers are borrowed until the next decode.
-## Callbacks use the C calling convention and must not raise exceptions.
-
-import std/os
-
+## Low-level PL_MPEG-compatible decoder API. Returned frames are borrowed.
 const
-  LibraryPath = currentSourcePath().parentDir
+  DefaultBufferSize = 128 * 1024
   PlmAudioSamplesPerFrame* = 1152
   PlmPacketInvalidTs* = -1.0
   PlmDemuxPacketPrivate* = 0xBD
@@ -15,35 +10,161 @@ const
   PlmDemuxPacketAudio4* = 0xC3
   PlmDemuxPacketVideo1* = 0xE0
 
-{.passC: "-I" & LibraryPath.quoteShell.}
-{.compile: "pl_mpeg.c".}
-
 type
-  plm_t* {.importc, header: "mpeg.h", incompleteStruct.} = object
-  plm_buffer_t* {.importc, header: "mpeg.h", incompleteStruct.} = object
-  plm_demux_t* {.importc, header: "mpeg.h", incompleteStruct.} = object
-  plm_video_t* {.importc, header: "mpeg.h", incompleteStruct.} = object
-  plm_audio_t* {.importc, header: "mpeg.h", incompleteStruct.} = object
-
-  plm_packet_t* {.importc, header: "mpeg.h", bycopy.} = object
+  plm_packet_t* = object
     `type`*: cint
-    pts*: cdouble
+    pts*: float64
     length*: csize_t
     data*: ptr uint8
 
-  plm_plane_t* {.importc, header: "mpeg.h", bycopy.} = object
-    width*, height*: cuint
+  plm_plane_t* = object
+    width*: cuint
+    height*: cuint
     data*: ptr uint8
 
-  plm_frame_t* {.importc, header: "mpeg.h", bycopy.} = object
-    time*: cdouble
-    width*, height*: cuint
-    y*, cr*, cb*: plm_plane_t
+  plm_frame_t* = object
+    time*: float64
+    width*: cuint
+    height*: cuint
+    y*: plm_plane_t
+    cr*: plm_plane_t
+    cb*: plm_plane_t
 
-  plm_samples_t* {.importc, header: "mpeg.h", bycopy.} = object
-    time*: cdouble
+  plm_samples_t* = object
+    time*: float64
     count*: cuint
-    interleaved*: array[PlmAudioSamplesPerFrame * 2, cfloat]
+    interleaved*: array[PlmAudioSamplesPerFrame * 2, float32]
+
+  plm_t* = object
+    demux: ptr plm_demux_t
+    time: float64
+    hasEnded: cint
+    loop: cint
+    hasDecoders: cint
+    videoEnabled: cint
+    videoPacketType: cint
+    videoBuffer: ptr plm_buffer_t
+    videoDecoder: ptr plm_video_t
+    audioEnabled: cint
+    audioStreamIndex: cint
+    audioPacketType: cint
+    audioLeadTime: float64
+    audioBuffer: ptr plm_buffer_t
+    audioDecoder: ptr plm_audio_t
+    videoDecodeCallback: plm_video_decode_callback
+    videoDecodeCallbackUserData: pointer
+    audioDecodeCallback: plm_audio_decode_callback
+    audioDecodeCallbackUserData: pointer
+
+  plm_buffer_t* = object
+    bitIndex: csize_t
+    capacity: csize_t
+    length: csize_t
+    totalSize: csize_t
+    discardReadBytes: cint
+    hasEnded: cint
+    freeWhenDone: cint
+    closeWhenDone: cint
+    fh: File
+    loadCallback: plm_buffer_load_callback
+    seekCallback: plm_buffer_seek_callback
+    tellCallback: plm_buffer_tell_callback
+    loadCallbackUserData: pointer
+    bytes: ptr uint8
+    mode: plm_buffer_mode
+
+  VlcNode = tuple[index, value: int32]
+
+  plm_demux_t* = object
+    buffer: ptr plm_buffer_t
+    destroyBufferWhenDone: cint
+    systemClockRef: float64
+    lastFileSize: csize_t
+    lastDecodedPts: float64
+    startTime: float64
+    duration: float64
+    startCode: cint
+    hasPackHeader: cint
+    hasSystemHeader: cint
+    hasHeaders: cint
+    numAudioStreams: cint
+    numVideoStreams: cint
+    currentPacket: plm_packet_t
+    nextPacket: plm_packet_t
+
+  plm_video_motion_t = object
+    fullPx: cint
+    isSet: cint
+    rSize: cint
+    h: cint
+    v: cint
+
+  plm_video_t* = object
+    framerate: float64
+    pixelAspectRatio: float64
+    time: float64
+    framesDecoded: cint
+    width: cint
+    height: cint
+    mbWidth: cint
+    mbHeight: cint
+    mbSize: cint
+    lumaWidth: cint
+    lumaHeight: cint
+    chromaWidth: cint
+    chromaHeight: cint
+    startCode: cint
+    pictureType: cint
+    motionForward: plm_video_motion_t
+    motionBackward: plm_video_motion_t
+    hasSequenceHeader: cint
+    quantizerScale: cint
+    sliceBegin: cint
+    macroblockAddress: cint
+    mbRow: cint
+    mbCol: cint
+    macroblockType: cint
+    macroblockIntra: cint
+    dcPredictor: array[3, cint]
+    buffer: ptr plm_buffer_t
+    destroyBufferWhenDone: cint
+    frameCurrent: plm_frame_t
+    frameForward: plm_frame_t
+    frameBackward: plm_frame_t
+    framesData: ptr uint8
+    blockData: array[64, cint]
+    intraQuantMatrix: array[64, uint8]
+    nonIntraQuantMatrix: array[64, uint8]
+    hasReferenceFrame: cint
+    assumeNoBFrames: cint
+
+  plm_quantizer_spec_t = object
+    levels: uint16
+    group: uint8
+    bits: uint8
+
+  plm_audio_t* = object
+    time: float64
+    samplesDecoded: cint
+    samplerateIndex: cint
+    bitrateIndex: cint
+    version: cint
+    layer: cint
+    mode: cint
+    bound: cint
+    vPos: cint
+    nextFrameDataSize: cint
+    hasHeader: cint
+    buffer: ptr plm_buffer_t
+    destroyBufferWhenDone: cint
+    allocation: array[2, array[32, ptr plm_quantizer_spec_t]]
+    scaleFactorInfo: array[2, array[32, uint8]]
+    scaleFactor: array[2, array[32, array[3, cint]]]
+    sample: array[2, array[32, array[3, cint]]]
+    samples: plm_samples_t
+    D: array[1024, float32]
+    V: array[2, array[1024, float32]]
+    U: array[32, float32]
 
   plm_video_decode_callback* = proc(
     decoder: ptr plm_t, frame: ptr plm_frame_t, user: pointer
@@ -61,7 +182,12 @@ type
     buffer: ptr plm_buffer_t, user: pointer
   ): csize_t {.cdecl, raises: [].}
 
-{.push cdecl, importc, header: "mpeg.h", raises: [].}
+  plm_buffer_mode = enum
+    PLM_BUFFER_MODE_FILE, PLM_BUFFER_MODE_FIXED_MEM, PLM_BUFFER_MODE_RING, PLM_BUFFER_MODE_APPEND
+
+include memory
+
+{.push cdecl, raises: [].}
 
 proc plm_create_with_filename*(filename: cstring): ptr plm_t
   ## Create a plmpeg instance with a filename.
@@ -376,6 +502,7 @@ proc plm_audio_has_ended*(self: ptr plm_audio_t): cint
 proc plm_audio_decode*(self: ptr plm_audio_t): ptr plm_samples_t
   ## Returns borrowed samples for one MP2 packet and advances the audio clock.
 
+include bitstream, demux, video, audio, playback
 {.pop.}
 
 include colors

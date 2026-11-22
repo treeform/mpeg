@@ -1,23 +1,15 @@
-# Bundled PL_MPEG
+# Decoder provenance
 
-Source: https://github.com/phoboslab/pl_mpeg
+The Nim decoder is a port of [PL_MPEG revision c871f2b](https://github.com/phoboslab/pl_mpeg/tree/c871f2be022ece7ef4f64230b4fb8e1fb9eb6023), dated 2025-12-30.
+Dominic Szablewski's MIT copyright notice and license are in the adjacent LICENSE file.
+Upstream credits Zoltan Korandi's Java MPEG-1 Video Decoder and Player for
+inspiring its video decoder and Martin J. Fiedler's kjmp2 for its audio decoder.
 
-Revision: `c871f2be022ece7ef4f64230b4fb8e1fb9eb6023`, dated 2025-12-30.
+The port retains the local end-of-stream fix that displays the pending reference
+frame after a final B-picture. The RGB conversion routines also handle odd display
+dimensions. File I/O and decoder-owned allocations use Nim's standard library.
+The low-level memory constructor retains its original ownership contract.
+Passing `free_when_done = 1` transfers a C `malloc` allocation to the decoder,
+which releases it with the matching C runtime `free`.
 
-The upstream decoder is MIT licensed. Its copyright and license are preserved
-in the adjacent LICENSE file. The Nim wrapper has its own root license.
-
-The bundled header has one local change in `plm_video_decode`: drain the
-pending reference frame at EOF even when the last coded picture is a B-frame.
-Upstream only drains it when the last coded picture is an I- or P-frame,
-dropping the final display frame in `tests/data/stereo.mpg`. The regression
-tests require all 60 frames and verify the last frame against FFmpeg.
-
-`mpeg.h` includes stdio before the upstream header declares FILE-based APIs.
-`pl_mpeg.c` enables the single-header implementation in one translation unit.
-The Nim bindings use the default interleaved audio layout. Do not define
-`PLM_AUDIO_SEPARATE_CHANNELS` or `PLM_NO_STDIO` with these bindings.
-
-When replacing the upstream header, reapply or retire the EOF fix, review all
-public declarations in `bindings.nim`, and run `nim r -f tests/tests.nim`.
-The force flag avoids reusing a C object compiled against the previous header.
+Run `nim r tests/tests.nim` for the codec, container, and API regressions.

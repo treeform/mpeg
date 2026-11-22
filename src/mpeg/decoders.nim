@@ -151,20 +151,21 @@ proc pcm16*(frame: AudioFrame, dest: var openArray[int16]): int {.raises: [].} =
   ## Writes clipped PCM samples and returns the number that fit in dest.
   ## Non-finite values clip to the endpoints for infinities and to silence for NaN.
   result = min(frame.samples.len, dest.len)
-  # The loop fits both buffers. Finite scaled samples fit in int16 after
-  # rounding. Add the half-unit in float64 to preserve float32 near-ties.
+  # Keep the half-unit as an integer bit so float32 ties round away from zero.
+  # The loop fits both buffers and the clipped magnitude is at most 32767.
   {.push checks: off.}
+  let samples {.cursor.} = frame.samples
   for i in 0 ..< result:
-    let sample = frame.samples[i]
-    if sample >= 1.0'f:
-      dest[i] = 32767
-    elif sample <= -1.0'f:
-      dest[i] = -32767
-    elif sample != sample:
-      dest[i] = 0
-    else:
-      let scaled = float64(sample * 32767.0'f)
-      dest[i] = int16(scaled + (if scaled < 0: -0.5 else: 0.5))
+    let
+      bits = cast[int32](samples[i])
+      magnitude = bits and high(int32)
+      # Positive IEEE float bit patterns sort like their values. Clip at one,
+      # and clear NaN payloads before converting the magnitude to an integer.
+      bounded = min(magnitude, cast[int32](1.0'f32))
+      nonNanMask = -int32(magnitude <= cast[int32](float32(Inf)))
+      clipped = cast[float32](bounded and nonNanMask)
+      rounded = (int32(clipped * 65534.0'f32) + 1) shr 1
+    dest[i] = int16(if bits < 0: -rounded else: rounded)
   {.pop.}
 
 proc pcm16*(frame: AudioFrame): seq[int16] {.raises: [].} =

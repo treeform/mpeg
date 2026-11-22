@@ -402,6 +402,22 @@ when not defined(mpegReference):
       discard frame.pcm16(dest)
       check dest == [-32767'i16, 0, 32767]
 
+    test "batched PCM conversion clips each lane and preserves the tail":
+      let frame = AudioFrame(samples: @[1.5'f32, -0.5, 0, 0.5, -2, 0.25, -0.25,
+        float32(NaN), -1, 1, float32(Inf), float32(NegInf), -0.75, 0.75, 0.125,
+        -0.125, 0.625])
+      for count in 1..frame.samples.len:
+        var dest: array[19, int16]
+        for sample in dest.mitems: sample = 123
+        check frame.pcm16(dest.toOpenArray(1, count)) == count
+        for i in 0..<count:
+          let x = frame.samples[i]
+          let expected = if x != x: 0'i16
+                         else: int16(round(clamp(x, -1'f32, 1'f32) * 32767'f32))
+          check dest[i + 1] == expected
+        check dest[0] == 123
+        check dest[count + 1] == 123
+
     when defined(nimAllocStats):
       test "warmed RGBA and PCM decoding reuses all frame storage":
         let

@@ -1,2 +1,0 @@
-nimTitle	kernels_avx2	mpeg/kernels_avx2.html	module mpeg/kernels_avx2		0
-nim	opaqueRgbaRowsAvx2	mpeg/kernels_avx2.html#opaqueRgbaRowsAvx2,ptr.uint8,ptr.uint8,ptr.uint8,ptr.uint8,ptr.uint8,ptr.uint8,int	proc opaqueRgbaRowsAvx2(y0, y1, cb, cr, dest0, dest1: ptr uint8; width: int)		12

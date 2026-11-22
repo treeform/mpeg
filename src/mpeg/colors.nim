@@ -63,6 +63,7 @@ proc convertFrame(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint,
 
 proc frameToOpaqueRgba*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint) =
   ## Writes RGBA8 with alpha 255 into the supplied rows.
+  profileScope("convert RGBA")
   convertFrame(frame, dest, stride, 4, 0, 1, 2, true)
 
 proc plm_frame_to_rgb*(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint) {.cdecl.} =

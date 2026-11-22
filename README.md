@@ -145,6 +145,13 @@ FFmpeg is installed. The [fixture notes](tests/data/README.md) describe them.
 For optional decoding benchmarks, install `benchy` with Nimby and run
 `nim r -d:release tests/bench_mpeg.nim`, optionally followed by a file path.
 
+To profile the stereo fixture, install `fluffy` with Nimby and run
+`nim r -d:release -d:mpegProfile tests/profile_mpeg.nim`. Open
+`tmp/profile_mpeg.json` in Fluffy for frame and packet timings. Add
+`-d:mpegProfileDetail` for block and transform timings over the first four
+output frames and four audio packets. The runner accepts an output path as
+its first argument. Profiling builds are for single-threaded captures.
+
 The original PL_MPEG C decoder and its Nim wrapper from commit `d4533c5`
 are preserved in `tests/reference` as a test oracle. To run the same tests
 or benchmarks against that decoder, use:

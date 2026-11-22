@@ -1,4 +1,4 @@
-import bindings
+import bindings, profile
 
 type
   MpegError* = object of CatchableError
@@ -120,6 +120,7 @@ proc decodeVideo*(decoder: Decoder, frame: var VideoFrame): bool
     {.raises: [MpegError].} =
   ## Decodes into a reusable owned RGBA buffer; false leaves it unchanged.
   ## False means end of stream, a disabled stream, or undecodable data.
+  profileScope("decodeVideo")
   let decoded = plm_decode_video(decoder.raw)
   if decoded == nil:
     return false
@@ -134,6 +135,7 @@ proc decodeAudio*(decoder: Decoder, frame: var AudioFrame): bool
     {.raises: [MpegError].} =
   ## Decodes into reusable interleaved stereo floats; false leaves it unchanged.
   ## False means end of stream, a disabled stream, or undecodable data.
+  profileScope("decodeAudio")
   let decoded = plm_decode_audio(decoder.raw)
   if decoded == nil:
     return false
@@ -150,6 +152,7 @@ proc decodeAudio*(decoder: Decoder, frame: var AudioFrame): bool
 proc pcm16*(frame: AudioFrame, dest: var openArray[int16]): int {.raises: [].} =
   ## Writes clipped PCM samples and returns the number that fit in dest.
   ## Non-finite values clip to the endpoints for infinities and to silence for NaN.
+  profileScope("pcm16")
   result = min(frame.samples.len, dest.len)
   # Keep the half-unit as an integer bit so float32 ties round away from zero.
   # The loop fits both buffers and the clipped magnitude is at most 32767.

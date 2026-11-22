@@ -184,6 +184,7 @@ type
   plm_buffer_mode = enum
     PLM_BUFFER_MODE_FILE, PLM_BUFFER_MODE_FIXED_MEM, PLM_BUFFER_MODE_RING, PLM_BUFFER_MODE_APPEND
 
+import profile
 include memory
 
 {.push cdecl, raises: [].}

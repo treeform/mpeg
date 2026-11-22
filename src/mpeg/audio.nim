@@ -251,6 +251,7 @@ proc plm_audio_decode_header(self: ptr plm_audio_t): cint =
 {.push checks: off.}
 proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int,
     duplicateMono: static bool = false) =
+  profileScope("synthesize channel", detail = true)
   plm_audio_idct36(self.sample[ch], subblock, self.V[ch], self.vPos)
   let
     windowBase = 512 - (self.vPos shr 1)
@@ -274,6 +275,7 @@ proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int,
 {.pop.}
 
 proc plm_audio_decode_frame(self: ptr plm_audio_t) =
+  profileScope("decode audio packet")
   # Prepare the quantizer table lookups
   var tab3: cint = 0
   var sblimit: cint = 0
@@ -390,6 +392,7 @@ proc plm_audio_read_samples(self: ptr plm_audio_t, ch: cint, sb: cint, part: cin
 # output slots beginning at dp fit in the 1024-sample ring.
 {.push boundChecks: off.}
 proc plm_audio_idct36(s: array[32, array[3, cint]], ss: int, d: var array[1024, float32], dp: cint) =
+  profileScope("audio IDCT", detail = true)
   var t01: float32
   var t02: float32
   var t03: float32

@@ -305,6 +305,7 @@ proc plm_video_init_frame(self: ptr plm_video_t, frame: ptr plm_frame_t, base: p
   frame.cb.data = base + lumaPlaneSize + chromaPlaneSize
 
 proc plm_video_decode_picture(self: ptr plm_video_t) =
+  profileScope("decode picture")
   plm_buffer_skip(self.buffer, 10)
   self.pictureType = plm_buffer_read(self.buffer, 3)
   plm_buffer_skip(self.buffer, 16)
@@ -366,6 +367,7 @@ proc plm_video_decode_slice(self: ptr plm_video_t, slice: cint) =
       break
 
 proc plm_video_decode_macroblock(self: ptr plm_video_t) =
+  profileScope("decode macroblock", detail = true)
   # Decode increment
   var increment: cint = 0
   var t: cint = readVlc(self.buffer, PLM_VIDEO_MACROBLOCK_ADDRESS_INCREMENT)
@@ -475,6 +477,7 @@ proc plm_video_decode_motion_vector(self: ptr plm_video_t, rSize: cint, motion: 
   return motion
 
 proc plm_video_predict_macroblock(self: ptr plm_video_t) =
+  profileScope("motion compensation", detail = true)
   var fwH: cint = self.motionForward.h
   var fwV: cint = self.motionForward.v
   if self.motionForward.fullPx != 0:
@@ -550,6 +553,7 @@ proc plm_video_process_macroblock(self: ptr plm_video_t, s: ptr uint8, d: ptr ui
   {.pop.}
 
 proc plm_video_decode_block(self: ptr plm_video_t, blockIndex: cint) =
+  profileScope("decode block", detail = true)
   var n: cint = 0
   var quantMatrix: ptr uint8
   # Decode DC coefficient of intra-coded blocks
@@ -656,6 +660,7 @@ proc plm_video_decode_block(self: ptr plm_video_t, blockIndex: cint) =
 # Both passes address the same fixed 8x8 coefficient block.
 {.push boundChecks: off.}
 proc plm_video_idct(coefficients: var array[64, cint]) =
+  profileScope("video IDCT", detail = true)
   var b1: cint
   var b3: cint
   var b4: cint

@@ -28,7 +28,7 @@
     <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
       <h1 class="title">Index</h1>
-      Modules: <a href="mpeg.html">mpeg</a>, <a href="mpeg/bindings.html">mpeg/bindings</a>, <a href="mpeg/decoders.html">mpeg/decoders</a>, <a href="mpeg/idct.html">mpeg/idct</a>, <a href="mpeg/kernels_avx2.html">mpeg/kernels_avx2</a>, <a href="mpeg/profile.html">mpeg/profile</a>, <a href="mpeg/simd.html">mpeg/simd</a>.<br/><p /><h2>API symbols</h2>
+      Modules: <a href="mpeg.html">mpeg</a>, <a href="mpeg/bindings.html">mpeg/bindings</a>, <a href="mpeg/decoders.html">mpeg/decoders</a>, <a href="mpeg/idct.html">mpeg/idct</a>, <a href="mpeg/kernels_avx2.html">mpeg/kernels_avx2</a>, <a href="mpeg/profile.html">mpeg/profile</a>, <a href="mpeg/simd.html">mpeg/simd</a>, <a href="mpeg/synthesis.html">mpeg/synthesis</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="audioEnabled%3D" href="#audioEnabled%3D"><span>audioEnabled=:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc audioEnabled=(decoder: Decoder; enabled: bool)" href="mpeg/decoders.html#audioEnabled%3D%2CDecoder%2Cbool">decoders: proc audioEnabled=(decoder: Decoder; enabled: bool)</a></li>
@@ -589,6 +589,22 @@
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc sampleRate(decoder: Decoder): int" href="mpeg/decoders.html#sampleRate%2CDecoder">decoders: proc sampleRate(decoder: Decoder): int</a></li>
           </ul></dd>
+<dt><a name="synthesisTaps" href="#synthesisTaps"><span>synthesisTaps:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="synthesis: iterator synthesisTaps(vPos: int): tuple[w, v: int]" href="mpeg/synthesis.html#synthesisTaps.i%2Cint">synthesis: iterator synthesisTaps(vPos: int): tuple[w, v: int]</a></li>
+          </ul></dd>
+<dt><a name="synthesisWindowAvx2" href="#synthesisWindowAvx2"><span>synthesisWindowAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="kernels_avx2: proc synthesisWindowAvx2(ring: array[1024, float32]; window: array[512, float32];
+                    vPos: int; samples: var array[32, float32])" href="mpeg/kernels_avx2.html#synthesisWindowAvx2%2Carray%5B%2Cfloat32%5D%2Carray%5B%2Cfloat32%5D%2Cint%2Carray%5B%2Cfloat32%5D">kernels_avx2: proc synthesisWindowAvx2(ring: array[1024, float32]; window: array[512, float32];
+                    vPos: int; samples: var array[32, float32])</a></li>
+          </ul></dd>
+<dt><a name="synthesisWindowPortable" href="#synthesisWindowPortable"><span>synthesisWindowPortable:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="synthesis: proc synthesisWindowPortable(ring: array[1024, float32]; window: array[512, float32];
+                        vPos: int; samples: var array[32, float32])" href="mpeg/synthesis.html#synthesisWindowPortable%2Carray%5B%2Cfloat32%5D%2Carray%5B%2Cfloat32%5D%2Cint%2Carray%5B%2Cfloat32%5D">synthesis: proc synthesisWindowPortable(ring: array[1024, float32]; window: array[512, float32];
+                        vPos: int; samples: var array[32, float32])</a></li>
+          </ul></dd>
 <dt><a name="useAvx2" href="#useAvx2"><span>useAvx2:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="simd: let useAvx2" href="mpeg/simd.html#useAvx2">simd: let useAvx2</a></li>
@@ -609,7 +625,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 18:37:19 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 18:41:16 UTC</small>
       </div>
     </div>
   </div>

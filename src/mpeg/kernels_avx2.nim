@@ -5,7 +5,7 @@ import idct, profile, synthesis
 when defined(vcc):
   {.localPassC: "/arch:AVX2 /fp:strict".}
 else:
-  {.localPassC: "-mavx2 -ffp-contract=off".}
+  {.localPassC: "-mavx2 -fno-fast-math -ffp-contract=off".}
 
 type Bytes = ptr UncheckedArray[uint8]
 

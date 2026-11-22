@@ -14,7 +14,9 @@
 
 ## About
 
-Mpeg decodes video and audio entirely in Nim, using only the standard library.
+Mpeg decodes video and audio in Nim. On x86-64, it uses nimsimd for AVX2
+acceleration when the CPU and operating system support it. Other machines
+use the portable kernels. Build with `-d:mpegNoSimd` to select them explicitly.
 The decoder is a port of [PL_MPEG](https://github.com/phoboslab/pl_mpeg).
 
 - MPEG-1 video and MPEG-PS container decoding.

@@ -446,6 +446,41 @@ when not defined(mpegReference):
         check samples == 84 * pcm.len
         check delta == default(typeof(delta))
 
+    test "opaque RGBA conversion handles vector boundaries and padded rows":
+      for width in [31, 32, 33, 63, 64, 65]:
+        let
+          yStride = width + 3
+          cbStride = (width + 1) div 2 + 1
+          crStride = cbStride + 2
+          stride = width * 4 + 7
+        var
+          y = newSeq[uint8](3 * yStride)
+          cb = newSeq[uint8](2 * cbStride)
+          cr = newSeq[uint8](2 * crStride)
+          rgba = newSeq[uint8](3 * stride + 2)
+        for i in 0..<y.len: y[i] = uint8((i * 79) and 255)
+        for i in 0..<cb.len: cb[i] = uint8((37 + i * 43) and 255)
+        for i in 0..<cr.len: cr[i] = uint8((241 - i * 29) and 255)
+        for value in rgba.mitems: value = 55
+        var frame = plm_frame_t(width: cuint(width), height: 3,
+          y: plm_plane_t(width: cuint(yStride), height: 3, data: addr y[0]),
+          cb: plm_plane_t(width: cuint(cbStride), height: 2, data: addr cb[0]),
+          cr: plm_plane_t(width: cuint(crStride), height: 2, data: addr cr[0]))
+        frameToOpaqueRgba(addr frame, addr rgba[1], cint(stride))
+        check rgba[0] == 55 and rgba[^1] == 55
+        for row in 0..<3:
+          for x in 0..<width:
+            let
+              luma = ((int(y[row * yStride + x]) - 16) * 76309) shr 16
+              u = int(cb[(row div 2) * cbStride + x div 2]) - 128
+              v = int(cr[(row div 2) * crStride + x div 2]) - 128
+              i = 1 + row * stride + x * 4
+            check int(rgba[i]) == clamp(luma + ((v * 104597) shr 16), 0, 255)
+            check int(rgba[i+1]) == clamp(luma - ((u * 25674 + v * 53278) shr 16), 0, 255)
+            check int(rgba[i+2]) == clamp(luma + ((u * 132201) shr 16), 0, 255)
+            check rgba[i+3] == 255
+          for i in width * 4..<stride: check rgba[1 + row * stride + i] == 55
+
     test "all six pixel layouts respect odd dimensions, alpha, and stride":
       type ConvertPixels = proc(frame: ptr plm_frame_t, dest: ptr uint8,
           stride: cint) {.cdecl, raises: [].}

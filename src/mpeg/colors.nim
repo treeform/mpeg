@@ -50,7 +50,13 @@ proc convertFrame(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint,
       when secondRow:
         pixel(x + yStride, i + int(stride))
         when secondCol: pixel(x + yStride + 1, i + int(stride) + pixelSize)
-    for col in 0 ..< width div 2:
+    var firstPair = 0
+    when buildAvx2 and opaque and secondRow:
+      if useAvx2 and width >= 32:
+        opaqueRgbaRowsAvx2(yRow, yRow + yStride, cbRow, crRow,
+          dstRow, dstRow + int(stride), width)
+        firstPair = (width div 32) * 16
+    for col in firstPair ..< width div 2:
       tile(2 * col, true)
     if (width and 1) != 0:
       tile(width - 1, false)

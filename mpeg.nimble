@@ -7,3 +7,4 @@ srcDir = "src"
 skipDirs = @["docs", "examples", "tests", "tools"]
 
 requires "nim >= 2.2.4"
+requires "nimsimd >= 1.3.2"

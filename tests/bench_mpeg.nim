@@ -1,6 +1,9 @@
-import
-  std/os,
-  benchy, mpeg
+import std/os, benchy
+
+when defined(mpegReference):
+  import reference/mpeg
+else:
+  import mpeg
 
 let
   path =

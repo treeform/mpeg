@@ -143,6 +143,19 @@ FFmpeg is installed. The [fixture notes](tests/data/README.md) describe them.
 For optional decoding benchmarks, install `benchy` with Nimby and run
 `nim r -d:release tests/bench_mpeg.nim`, optionally followed by a file path.
 
+The original PL_MPEG C decoder and its Nim wrapper from commit `d4533c5`
+are preserved in `tests/reference` as a test oracle. To run the same tests
+or benchmarks against that decoder, use:
+
+```sh
+nim r -d:release -d:mpegReference tests/tests.nim
+nim r -d:release -d:mpegReference tests/bench_mpeg.nim
+```
+
+The oracle runs the 18 shared tests. The native suite also checks odd-sized
+pixel layouts and buffers that grow from zero capacity. Library imports
+always use the native Nim decoder.
+
 ## Manual playback
 
 The optional audio test uses OpenAL. The video player also uses Boxy and Windy.

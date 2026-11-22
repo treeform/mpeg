@@ -162,9 +162,7 @@ type
     scaleFactor: array[2, array[32, array[3, cint]]]
     sample: array[2, array[32, array[3, cint]]]
     samples: plm_samples_t
-    D: array[1024, float32]
     V: array[2, array[1024, float32]]
-    U: array[32, float32]
 
   plm_video_decode_callback* = proc(
     decoder: ptr plm_t, frame: ptr plm_frame_t, user: pointer

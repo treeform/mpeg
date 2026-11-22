@@ -155,8 +155,10 @@ nim r -d:release -d:mpegReference tests/bench_mpeg.nim
 ```
 
 The oracle runs the 18 shared tests. The native suite also checks odd-sized
-pixel layouts and buffers that grow from zero capacity. Library imports
-always use the native Nim decoder.
+pixel layouts, growing buffers, and PCM conversion. Run
+`nim r -d:nimAllocStats tests/tests.nim` to check that decoding the stereo
+fixture into warmed RGBA and PCM buffers records zero Nim heap allocations.
+Library imports always use the native Nim decoder.
 
 ## Manual playback
 

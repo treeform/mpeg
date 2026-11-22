@@ -1,4 +1,3 @@
-proc plm_clamp(n: cint): uint8
 proc plm_video_decode_sequence_header(self: ptr plm_video_t): cint
 proc plm_video_init_frame(self: ptr plm_video_t, frame: ptr plm_frame_t, base: ptr uint8)
 proc plm_video_decode_picture(self: ptr plm_video_t)
@@ -137,8 +136,8 @@ const PLM_VIDEO_DCT_COEFF: array[224, VlcNode] = [(2, 0), (0, 0x0001), (4, 0), (
     0x0110), (0, 0x010f), (0, 0x0603), (0, 0x1002), (0, 0x0f02), (0, 0x0e02), (0, 0x0d02), (0,
     0x0c02), (0, 0x0b02), (0, 0x1f01), (0, 0x1e01), (0, 0x1d01), (0, 0x1c01), (0, 0x1b01)]
 
-proc plm_clamp(n: cint): uint8 =
-  uint8(clamp(n, 0, 255))
+func plm_clamp(n: cint): uint8 {.inline.} =
+  uint8(min(255'i32, max(0'i32, n)))
 
 proc plm_video_create_with_buffer*(buffer: ptr plm_buffer_t,
     destroyWhenDone: cint): ptr plm_video_t =
@@ -525,11 +524,19 @@ proc plm_video_process_macroblock(self: ptr plm_video_t, s: ptr uint8, d: ptr ui
     return
   if srcX < 0 or srcY < 0 or srcX + blockSize + halfX > width or srcY + blockSize + halfY > height:
     return
+  # Both rectangles, including half-pixel neighbors, fit the padded planes.
+  {.push checks: off.}
   for row in 0 ..< blockSize:
+    let
+      sourceRow = (srcY + row) * width + srcX
+      destRow = (dstY + row) * width + dstX
+    if halfX == 0 and halfY == 0 and interpolate == 0:
+      copyMem(addr d[destRow], addr s[sourceRow], int(blockSize))
+      continue
     for col in 0 ..< blockSize:
       let
-        si = (srcY + row) * width + srcX + col
-        di = (dstY + row) * width + dstX + col
+        si = sourceRow + col
+        di = destRow + col
       var pixel = int(s[si])
       if halfX != 0 and halfY != 0:
         pixel = (pixel + int(s[si + 1]) + int(s[si + width]) + int(s[si + width + 1]) + 2) shr 2
@@ -540,6 +547,7 @@ proc plm_video_process_macroblock(self: ptr plm_video_t, s: ptr uint8, d: ptr ui
       if interpolate != 0:
         pixel = (pixel + int(d[di]) + 1) shr 1
       d[di] = uint8(pixel)
+  {.pop.}
 
 proc plm_video_decode_block(self: ptr plm_video_t, blockIndex: cint) =
   var n: cint = 0
@@ -627,18 +635,26 @@ proc plm_video_decode_block(self: ptr plm_video_t, blockIndex: cint) =
     d = (if blockIndex == 4: self.frameCurrent.cb.data else: self.frameCurrent.cr.data)
     dw = self.chromaWidth
     di = ((self.mbRow * self.lumaWidth) shl 2) + (self.mbCol shl 3)
-  if n != 1:
+  let dcOnly = n == 1
+  if dcOnly:
+    self.blockData[0] = (self.blockData[0] + 128) shr 8
+  else:
     plm_video_idct(self.blockData)
-  let dc = (self.blockData[0] + 128) shr 8
+  # The caller validated the macroblock address. This 8x8 tile fits its
+  # padded plane; residuals after the IDCT's final shift fit in 24 bits.
+  {.push checks: off.}
   for row in 0 ..< 8:
     for col in 0 ..< 8:
       let i = di + row * dw + col
-      var value = if n == 1: dc else: self.blockData[row * 8 + col]
+      var value = if dcOnly: self.blockData[0] else: self.blockData[row * 8 + col]
       if self.macroblockIntra == 0:
         value += cint(d[i])
       d[i] = plm_clamp(value)
+  {.pop.}
   reset(self.blockData)
 
+# Both passes address the same fixed 8x8 coefficient block.
+{.push boundChecks: off.}
 proc plm_video_idct(coefficients: var array[64, cint]) =
   var b1: cint
   var b3: cint
@@ -660,6 +676,13 @@ proc plm_video_idct(coefficients: var array[64, cint]) =
   var y7: cint
   # Transform columns
   for i in 0 ..< 8:
+    # A column without AC coefficients transforms to eight copies of its DC.
+    if (coefficients[8 + i] or coefficients[16 + i] or coefficients[24 + i] or
+        coefficients[32 + i] or coefficients[40 + i] or coefficients[48 + i] or
+        coefficients[56 + i]) == 0:
+      for row in 1 ..< 8:
+        coefficients[row * 8 + i] = coefficients[i]
+      continue
     b1 = coefficients[4 * 8 + i]
     b3 = coefficients[2 * 8 + i] + coefficients[6 * 8 + i]
     b4 = coefficients[5 * 8 + i] - coefficients[3 * 8 + i]
@@ -716,3 +739,4 @@ proc plm_video_idct(coefficients: var array[64, cint]) =
     coefficients[6 + i] = (y3 - x4 + 128) shr 8
     coefficients[7 + i] = (y4 - b7 + 128) shr 8
     i += 8
+{.pop.}

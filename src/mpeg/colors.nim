@@ -25,9 +25,9 @@ proc convertFrame(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint,
         b = (u * 132201) shr 16
       template pixel(srcIndex, dstIndex: int) =
         let y = ((int32(yRow[srcIndex]) - 16) * 76309) shr 16
-        dstRow[dstIndex + red] = uint8(clamp(y + r, 0, 255))
-        dstRow[dstIndex + green] = uint8(clamp(y - g, 0, 255))
-        dstRow[dstIndex + blue] = uint8(clamp(y + b, 0, 255))
+        dstRow[dstIndex + red] = uint8(min(255'i32, max(0'i32, y + r)))
+        dstRow[dstIndex + green] = uint8(min(255'i32, max(0'i32, y - g)))
+        dstRow[dstIndex + blue] = uint8(min(255'i32, max(0'i32, y + b)))
         when opaque:
           dstRow[dstIndex + 3] = 255'u8
       let i = x * pixelSize

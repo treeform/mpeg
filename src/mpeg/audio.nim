@@ -133,8 +133,6 @@ proc plm_audio_create_with_buffer*(buffer: ptr plm_buffer_t,
   self.buffer = buffer
   self.destroyBufferWhenDone = destroyWhenDone
   self.samplerateIndex = 3
-  for i in 0 ..< self.D.len:
-    self.D[i] = PLM_AUDIO_SYNTHESIS_WINDOW[i mod PLM_AUDIO_SYNTHESIS_WINDOW.len]
   # Attempt to decode first header
   self.nextFrameDataSize = plm_audio_decode_header(self)
   return self
@@ -244,6 +242,29 @@ proc plm_audio_decode_header(self: ptr plm_audio_t): cint =
   let frameSize: cint = (144000 * bitrate div samplerate) + padding
   return frameSize - (if hasCRC != 0: 6 else: 4)
 
+# The ring position is a multiple of 64 in 0..960. Each window row starts
+# on a multiple of 32, so a full row fits both the 512-tap window and V.
+{.push checks: off.}
+proc synthesizeChannel(self: ptr plm_audio_t, ch, subblock, outPos: int) =
+  plm_audio_idct36(self.sample[ch], subblock, self.V[ch], self.vPos)
+  let
+    windowBase = 512 - (self.vPos shr 1)
+    phase = (self.vPos and 127) shr 1
+  var accum: array[32, float32]
+  # Accumulate each half in stream order to preserve float rounding.
+  for half in 0..1:
+    let vBase = if half == 0: phase else: 96 - phase
+    for tap in 0 ..< 8:
+      let
+        w = (windowBase + half * 32 + tap * 64) and 511
+        v = vBase + tap * 128
+      for i in 0 ..< 32:
+        accum[i] += PLM_AUDIO_SYNTHESIS_WINDOW[w + i] * self.V[ch][v + i]
+  # 36 subblocks of 32 stereo samples fill the 1152-sample MP2 frame.
+  for i in 0 ..< 32:
+    self.samples.interleaved[(outPos + i) * 2 + ch] = accum[i] / -1090519040.0'f32
+{.pop.}
+
 proc plm_audio_decode_frame(self: ptr plm_audio_t) =
   # Prepare the quantizer table lookups
   var tab3: cint = 0
@@ -314,29 +335,7 @@ proc plm_audio_decode_frame(self: ptr plm_audio_t) =
         # Shifting step
         self.vPos = (self.vPos - 64) and 1023
         for ch in 0 ..< 2:
-          plm_audio_idct36(self.sample[ch], p, self.V[ch], self.vPos)
-          # Build U, windowing, calculate output
-          reset self.U
-          var dIndex: cint = 512 - (self.vPos shr 1)
-          var vIndex: cint = (self.vPos mod 128) shr 1
-          while vIndex < 1024:
-            for i in 0 ..< 32:
-              self.U[i] += self.D[dIndex] * self.V[ch][vIndex]
-              inc dIndex
-              inc vIndex
-            vIndex += 128 - 32
-            dIndex += 64 - 32
-          dIndex -= (512 - 32)
-          vIndex = (128 - 32 + 1024) - vIndex
-          while vIndex < 1024:
-            for i in 0 ..< 32:
-              self.U[i] += self.D[dIndex] * self.V[ch][vIndex]
-              inc dIndex
-              inc vIndex
-            vIndex += 128 - 32
-            dIndex += 64 - 32
-          for j in 0 ..< 32:
-            self.samples.interleaved[((outPos + j) shl 1) + ch] = self.U[j] / -1090519040.0'f32
+          synthesizeChannel(self, ch, p, outPos)
         outPos += 32
   plm_buffer_align(self.buffer)
 
@@ -387,6 +386,9 @@ proc plm_audio_read_samples(self: ptr plm_audio_t, ch: cint, sb: cint, part: cin
   val = (adj - sample[2]) * scale
   sample[2] = (val * (sf shr 12) + ((val * (sf and 4095) + 2048) shr 12)) shr 12
 
+# Only the synthesis loop calls this transform: ss is 0..2 and the 64
+# output slots beginning at dp fit in the 1024-sample ring.
+{.push boundChecks: off.}
 proc plm_audio_idct36(s: array[32, array[3, cint]], ss: int, d: var array[1024, float32], dp: cint) =
   var t01: float32
   var t02: float32
@@ -694,3 +696,4 @@ proc plm_audio_idct36(s: array[32, array[3, cint]], ss: int, d: var array[1024, 
   d[dp + 17] = -t02
   d[dp + 15] = t02
   d[dp + 16] = 0.0'f32
+{.pop.}

@@ -1,6 +1,4 @@
-import
-  std/math,
-  bindings
+import bindings
 
 type
   MpegError* = object of CatchableError
@@ -151,11 +149,25 @@ proc decodeAudio*(decoder: Decoder, frame: var AudioFrame): bool
 
 proc pcm16*(frame: AudioFrame, dest: var openArray[int16]): int {.raises: [].} =
   ## Writes clipped PCM samples and returns the number that fit in dest.
+  ## Non-finite values clip to the endpoints for infinities and to silence for NaN.
   result = min(frame.samples.len, dest.len)
+  # The loop fits both buffers. Finite scaled samples fit in int16 after
+  # rounding. Add the half-unit in float64 to preserve float32 near-ties.
+  {.push checks: off.}
   for i in 0 ..< result:
-    dest[i] = int16(round(clamp(frame.samples[i], -1.0'f, 1.0'f) * 32767.0'f))
+    let sample = frame.samples[i]
+    if sample >= 1.0'f:
+      dest[i] = 32767
+    elif sample <= -1.0'f:
+      dest[i] = -32767
+    elif sample != sample:
+      dest[i] = 0
+    else:
+      let scaled = float64(sample * 32767.0'f)
+      dest[i] = int16(scaled + (if scaled < 0: -0.5 else: 0.5))
+  {.pop.}
 
 proc pcm16*(frame: AudioFrame): seq[int16] {.raises: [].} =
   ## Returns an owned copy of the frame as signed 16-bit stereo PCM.
-  result.setLen(frame.samples.len)
+  result = newSeqUninit[int16](frame.samples.len)
   discard frame.pcm16(result)

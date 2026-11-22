@@ -388,6 +388,48 @@ when not defined(mpegReference):
       check dest[1..2] == [-32767'i16, -16384]
       check AudioFrame().pcm16(dest) == 0
 
+    test "PCM rounding agrees with round for floats adjacent to half steps":
+      var frame = AudioFrame(samples: newSeq[float32](3))
+      var dest: array[3, int16]
+      for level in [-32767, -16384, -128, -1, 0, 127, 16383, 32766]:
+        let bits = cast[uint32]((float32(level) + 0.5'f32) / 32767.0'f32)
+        for i in 0..<3:
+          frame.samples[i] = cast[float32](bits - 1 + uint32(i))
+        check frame.pcm16(dest) == 3
+        for i, sample in frame.samples:
+          check dest[i] == int16(round(sample * 32767.0'f32))
+      frame.samples = @[float32(NegInf), float32(NaN), float32(Inf)]
+      discard frame.pcm16(dest)
+      check dest == [-32767'i16, 0, 32767]
+
+    when defined(nimAllocStats):
+      test "warmed RGBA and PCM decoding reuses all frame storage":
+        let
+          video = openMpeg(DataPath / "stereo.mpg")
+          audio = openMpeg(DataPath / "stereo.mpg")
+        defer:
+          video.close()
+          audio.close()
+        video.audioEnabled = false
+        audio.videoEnabled = false
+        var
+          v: VideoFrame
+          a: AudioFrame
+          pcm: array[PlmAudioSamplesPerFrame * 2, int16]
+          frames, samples: int
+        require video.decodeVideo(v) and audio.decodeAudio(a)
+        video.rewind()
+        audio.rewind()
+        let initial = getAllocStats()
+        while video.decodeVideo(v):
+          inc frames
+        while audio.decodeAudio(a):
+          samples += a.pcm16(pcm)
+        let delta = getAllocStats() - initial
+        check frames == 60
+        check samples == 84 * pcm.len
+        check delta == default(typeof(delta))
+
     test "all six pixel layouts respect odd dimensions, alpha, and stride":
       type ConvertPixels = proc(frame: ptr plm_frame_t, dest: ptr uint8,
           stride: cint) {.cdecl, raises: [].}

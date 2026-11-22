@@ -28,7 +28,7 @@
     <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
       <h1 class="title">Index</h1>
-      Modules: <a href="mpeg.html">mpeg</a>, <a href="mpeg/bindings.html">mpeg/bindings</a>, <a href="mpeg/decoders.html">mpeg/decoders</a>, <a href="mpeg/profile.html">mpeg/profile</a>.<br/><p /><h2>API symbols</h2>
+      Modules: <a href="mpeg.html">mpeg</a>, <a href="mpeg/bindings.html">mpeg/bindings</a>, <a href="mpeg/decoders.html">mpeg/decoders</a>, <a href="mpeg/kernels_avx2.html">mpeg/kernels_avx2</a>, <a href="mpeg/profile.html">mpeg/profile</a>, <a href="mpeg/simd.html">mpeg/simd</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="audioEnabled%3D" href="#audioEnabled%3D"><span>audioEnabled=:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc audioEnabled=(decoder: Decoder; enabled: bool)" href="mpeg/decoders.html#audioEnabled%3D%2CDecoder%2Cbool">decoders: proc audioEnabled=(decoder: Decoder; enabled: bool)</a></li>
@@ -36,6 +36,10 @@
 <dt><a name="AudioFrame" href="#AudioFrame"><span>AudioFrame:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: object AudioFrame" href="mpeg/decoders.html#AudioFrame">decoders: object AudioFrame</a></li>
+          </ul></dd>
+<dt><a name="buildAvx2" href="#buildAvx2"><span>buildAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="simd: const buildAvx2" href="mpeg/simd.html#buildAvx2">simd: const buildAvx2</a></li>
           </ul></dd>
 <dt><a name="close" href="#close"><span>close:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -80,6 +84,10 @@
 <dt><a name="newMpeg" href="#newMpeg"><span>newMpeg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc newMpeg(data: string): Decoder" href="mpeg/decoders.html#newMpeg%2Cstring">decoders: proc newMpeg(data: string): Decoder</a></li>
+          </ul></dd>
+<dt><a name="opaqueRgbaRowsAvx2" href="#opaqueRgbaRowsAvx2"><span>opaqueRgbaRowsAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="kernels_avx2: proc opaqueRgbaRowsAvx2(y0, y1, cb, cr, dest0, dest1: ptr uint8; width: int)" href="mpeg/kernels_avx2.html#opaqueRgbaRowsAvx2%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cptr.uint8%2Cint">kernels_avx2: proc opaqueRgbaRowsAvx2(y0, y1, cb, cr, dest0, dest1: ptr uint8; width: int)</a></li>
           </ul></dd>
 <dt><a name="openMpeg" href="#openMpeg"><span>openMpeg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -567,6 +575,10 @@
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc sampleRate(decoder: Decoder): int" href="mpeg/decoders.html#sampleRate%2CDecoder">decoders: proc sampleRate(decoder: Decoder): int</a></li>
           </ul></dd>
+<dt><a name="useAvx2" href="#useAvx2"><span>useAvx2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="simd: let useAvx2" href="mpeg/simd.html#useAvx2">simd: let useAvx2</a></li>
+          </ul></dd>
 <dt><a name="videoEnabled%3D" href="#videoEnabled%3D"><span>videoEnabled=:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="decoders: proc videoEnabled=(decoder: Decoder; enabled: bool)" href="mpeg/decoders.html#videoEnabled%3D%2CDecoder%2Cbool">decoders: proc videoEnabled=(decoder: Decoder; enabled: bool)</a></li>
@@ -583,7 +595,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 18:19:39 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 18:31:37 UTC</small>
       </div>
     </div>
   </div>

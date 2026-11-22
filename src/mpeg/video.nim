@@ -657,21 +657,26 @@ proc plm_video_decode_block(self: ptr plm_video_t, blockIndex: cint) =
   {.pop.}
   reset(self.blockData)
 
-# Two separable 8-point passes. Even at full int32 input magnitude, each
-# butterfly grows by less than 32x and the largest multiplier is 473.
-# Wide intermediates keep both passes within int64, including their products.
-{.push overflowChecks: off, boundChecks: off.}
+# AC coefficients are clipped to [-2048, 2047] and premultiplied by at
+# most 62. An 8-point butterfly grows by less than 25x, so its first-pass
+# outputs fit in 3.2 million and its second-pass outputs in 80 million.
+# Splitting 473, 196 and 362 into multiples of 256 plus small remainders
+# bounds the largest product by 4 * 3.2 million * 106, within int32.
+{.push checks: off.}
 proc plm_video_idct(coefficients: var array[64, cint]) =
   profileScope("video IDCT", detail = true)
-  var columns {.noinit.}: array[64, int64]
+  # Whole DC units add equally to every output. Only the low eight bits
+  # participate in rounding, even when the predictor is negative.
+  let dc = coefficients[0] shr 8
+  coefficients[0] = coefficients[0] and 255
 
   template transform(column: static bool, base: int) =
-    template get(k: static int): int64 =
-      when column: int64(coefficients[base + 8 * k])
-      else: columns[base + k]
-    template put(k: static int, value: int64) =
-      when column: columns[base + 8 * k] = value
-      else: coefficients[base + k] = cint((value + 128) shr 8)
+    template get(k: static int): cint =
+      when column: coefficients[base + 8 * k]
+      else: coefficients[base + k]
+    template put(k: static int, value: cint) =
+      when column: coefficients[base + 8 * k] = value
+      else: coefficients[base + k] = dc + ((value + 128) shr 8)
     let
       b1 = get(4)
       b3 = get(2) + get(6)
@@ -680,16 +685,18 @@ proc plm_video_idct(coefficients: var array[64, cint]) =
       tmp2 = get(3) + get(5)
       b6 = get(1) - get(7)
       b7 = tmp1 + tmp2
-      x4 = ((b6 * 473 - b4 * 196 + 128) shr 8) - b7
-      x0 = x4 - (((tmp1 - tmp2) * 362 + 128) shr 8)
+      x4 = 2 * b6 - b4 + ((60 * b4 - 39 * b6 + 128) shr 8) - b7
+      odd = tmp1 - tmp2
+      x0 = x4 - (odd + ((106 * odd + 128) shr 8))
       x1 = get(0) - b1
-      x2 = (((get(2) - get(6)) * 362 + 128) shr 8) - b3
+      even = get(2) - get(6)
+      x2 = even + ((106 * even + 128) shr 8) - b3
       x3 = get(0) + b1
       y3 = x1 + x2
       y4 = x3 + b3
       y5 = x1 - x2
       y6 = x3 - b3
-      y7 = -x0 - ((b4 * 473 + b6 * 196 + 128) shr 8)
+      y7 = -x0 - (2 * b4 + b6 + ((128 - 39 * b4 - 60 * b6) shr 8))
     put(0, b7 + y4)
     put(1, x4 + y3)
     put(2, y5 - x0)
@@ -700,13 +707,7 @@ proc plm_video_idct(coefficients: var array[64, cint]) =
     put(7, y4 - b7)
 
   for col in 0..<8:
-    if (coefficients[8 + col] or coefficients[16 + col] or coefficients[24 + col] or
-        coefficients[32 + col] or coefficients[40 + col] or coefficients[48 + col] or
-        coefficients[56 + col]) == 0:
-      for row in 0..<8:
-        columns[8 * row + col] = int64(coefficients[col])
-    else:
-      transform(true, col)
+    transform(true, col)
   for row in 0..<8:
     transform(false, 8 * row)
 {.pop.}

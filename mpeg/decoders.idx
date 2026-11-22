@@ -1,23 +1,23 @@
 nimTitle	decoders	mpeg/decoders.html	module mpeg/decoders		0
-nim	MpegError	mpeg/decoders.html#MpegError	object MpegError		6
-nim	Decoder	mpeg/decoders.html#Decoder	type Decoder		13
-nim	VideoFrame	mpeg/decoders.html#VideoFrame	object VideoFrame		15
-nim	AudioFrame	mpeg/decoders.html#AudioFrame	object AudioFrame		20
-nim	close	mpeg/decoders.html#close,Decoder	proc close(decoder: Decoder)		40
-nim	raw	mpeg/decoders.html#raw,Decoder	proc raw(decoder: Decoder): ptr plm_t		45
-nim	openMpeg	mpeg/decoders.html#openMpeg,string	proc openMpeg(path: string): Decoder		61
-nim	newMpeg	mpeg/decoders.html#newMpeg,string	proc newMpeg(data: string): Decoder		73
-nim	width	mpeg/decoders.html#width,Decoder	proc width(decoder: Decoder): int		83
-nim	height	mpeg/decoders.html#height,Decoder	proc height(decoder: Decoder): int		87
-nim	frameRate	mpeg/decoders.html#frameRate,Decoder	proc frameRate(decoder: Decoder): float64		91
-nim	sampleRate	mpeg/decoders.html#sampleRate,Decoder	proc sampleRate(decoder: Decoder): int		95
-nim	hasAudio	mpeg/decoders.html#hasAudio,Decoder	proc hasAudio(decoder: Decoder): bool		99
-nim	duration	mpeg/decoders.html#duration,Decoder	proc duration(decoder: Decoder): float64		103
-nim	audioEnabled=	mpeg/decoders.html#audioEnabled=,Decoder,bool	proc audioEnabled=(decoder: Decoder; enabled: bool)		107
-nim	videoEnabled=	mpeg/decoders.html#videoEnabled=,Decoder,bool	proc videoEnabled=(decoder: Decoder; enabled: bool)		112
-nim	rewind	mpeg/decoders.html#rewind,Decoder	proc rewind(decoder: Decoder)		117
-nim	decodeVideo	mpeg/decoders.html#decodeVideo,Decoder,VideoFrame	proc decodeVideo(decoder: Decoder; frame: var VideoFrame): bool		121
-nim	decodeAudio	mpeg/decoders.html#decodeAudio,Decoder,AudioFrame	proc decodeAudio(decoder: Decoder; frame: var AudioFrame): bool		135
-nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame,openArray[int16]	proc pcm16(frame: AudioFrame; dest: var openArray[int16]): int		152
-nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame	proc pcm16(frame: AudioFrame): seq[int16]		158
-nimgrp	pcm16	mpeg/decoders.html#pcm16-procs-all	proc		152
+nim	MpegError	mpeg/decoders.html#MpegError	object MpegError		4
+nim	Decoder	mpeg/decoders.html#Decoder	type Decoder		11
+nim	VideoFrame	mpeg/decoders.html#VideoFrame	object VideoFrame		13
+nim	AudioFrame	mpeg/decoders.html#AudioFrame	object AudioFrame		18
+nim	close	mpeg/decoders.html#close,Decoder	proc close(decoder: Decoder)		38
+nim	raw	mpeg/decoders.html#raw,Decoder	proc raw(decoder: Decoder): ptr plm_t		43
+nim	openMpeg	mpeg/decoders.html#openMpeg,string	proc openMpeg(path: string): Decoder		59
+nim	newMpeg	mpeg/decoders.html#newMpeg,string	proc newMpeg(data: string): Decoder		71
+nim	width	mpeg/decoders.html#width,Decoder	proc width(decoder: Decoder): int		81
+nim	height	mpeg/decoders.html#height,Decoder	proc height(decoder: Decoder): int		85
+nim	frameRate	mpeg/decoders.html#frameRate,Decoder	proc frameRate(decoder: Decoder): float64		89
+nim	sampleRate	mpeg/decoders.html#sampleRate,Decoder	proc sampleRate(decoder: Decoder): int		93
+nim	hasAudio	mpeg/decoders.html#hasAudio,Decoder	proc hasAudio(decoder: Decoder): bool		97
+nim	duration	mpeg/decoders.html#duration,Decoder	proc duration(decoder: Decoder): float64		101
+nim	audioEnabled=	mpeg/decoders.html#audioEnabled=,Decoder,bool	proc audioEnabled=(decoder: Decoder; enabled: bool)		105
+nim	videoEnabled=	mpeg/decoders.html#videoEnabled=,Decoder,bool	proc videoEnabled=(decoder: Decoder; enabled: bool)		110
+nim	rewind	mpeg/decoders.html#rewind,Decoder	proc rewind(decoder: Decoder)		115
+nim	decodeVideo	mpeg/decoders.html#decodeVideo,Decoder,VideoFrame	proc decodeVideo(decoder: Decoder; frame: var VideoFrame): bool		119
+nim	decodeAudio	mpeg/decoders.html#decodeAudio,Decoder,AudioFrame	proc decodeAudio(decoder: Decoder; frame: var AudioFrame): bool		133
+nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame,openArray[int16]	proc pcm16(frame: AudioFrame; dest: var openArray[int16]): int		150
+nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame	proc pcm16(frame: AudioFrame): seq[int16]		170
+nimgrp	pcm16	mpeg/decoders.html#pcm16-procs-all	proc		150

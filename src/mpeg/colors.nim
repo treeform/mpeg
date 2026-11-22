@@ -1,5 +1,19 @@
 # BT.601 limited-range YCbCr, with one chroma sample per 2x2 luma pixels.
 {.push raises: [].}
+# All BT.601 channel sums for 8-bit input fall in -278..534.
+const
+  clipBias = 278
+  biasedLuma = block:
+    var luma: array[256, int16]
+    for i in 0..<luma.len:
+      luma[i] = int16(clipBias + (((i - 16) * 76309) shr 16))
+    luma
+  clipTable = block:
+    var clipped: array[clipBias + 534 + 1, uint8]
+    for i in low(clipped)..high(clipped):
+      clipped[i] = uint8(clamp(i - clipBias, 0, 255))
+    clipped
+
 proc convertFrame(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint,
     pixelSize, red, green, blue: static int, opaque: static bool = false) =
   let
@@ -24,10 +38,10 @@ proc convertFrame(frame: ptr plm_frame_t, dest: ptr uint8, stride: cint,
         g = (u * 25674 + v * 53278) shr 16
         b = (u * 132201) shr 16
       template pixel(srcIndex, dstIndex: int) =
-        let y = ((int32(yRow[srcIndex]) - 16) * 76309) shr 16
-        dstRow[dstIndex + red] = uint8(min(255'i32, max(0'i32, y + r)))
-        dstRow[dstIndex + green] = uint8(min(255'i32, max(0'i32, y - g)))
-        dstRow[dstIndex + blue] = uint8(min(255'i32, max(0'i32, y + b)))
+        let y = int32(biasedLuma[yRow[srcIndex]])
+        dstRow[dstIndex + red] = clipTable[y + r]
+        dstRow[dstIndex + green] = clipTable[y - g]
+        dstRow[dstIndex + blue] = clipTable[y + b]
         when opaque:
           dstRow[dstIndex + 3] = 255'u8
       let i = x * pixelSize

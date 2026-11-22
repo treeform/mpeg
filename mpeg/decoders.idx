@@ -18,4 +18,6 @@ nim	videoEnabled=	mpeg/decoders.html#videoEnabled=,Decoder,bool	proc videoEnable
 nim	rewind	mpeg/decoders.html#rewind,Decoder	proc rewind(decoder: Decoder)		117
 nim	decodeVideo	mpeg/decoders.html#decodeVideo,Decoder,VideoFrame	proc decodeVideo(decoder: Decoder; frame: var VideoFrame): bool		121
 nim	decodeAudio	mpeg/decoders.html#decodeAudio,Decoder,AudioFrame	proc decodeAudio(decoder: Decoder; frame: var AudioFrame): bool		138
-nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame	proc pcm16(frame: AudioFrame): seq[int16]		155
+nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame,openArray[int16]	proc pcm16(frame: AudioFrame; dest: var openArray[int16]): int		155
+nim	pcm16	mpeg/decoders.html#pcm16,AudioFrame	proc pcm16(frame: AudioFrame): seq[int16]		161
+nimgrp	pcm16	mpeg/decoders.html#pcm16-procs-all	proc		155

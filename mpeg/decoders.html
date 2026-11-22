@@ -127,6 +127,7 @@
 </ul>
 <ul class="simple nested-toc-section">pcm16
   <li><a class="reference" href="#pcm16%2CAudioFrame" title="pcm16(frame: AudioFrame): seq[int16]">pcm16(frame: AudioFrame): seq[int16]</a></li>
+<li><a class="reference" href="#pcm16%2CAudioFrame%2CopenArray%5Bint16%5D" title="pcm16(frame: AudioFrame; dest: var openArray[int16]): int">pcm16(frame: AudioFrame; dest: var openArray[int16]): int</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">raw
@@ -370,7 +371,18 @@
   <dt><pre><span class="Keyword">proc</span> <a href="#pcm16%2CAudioFrame"><span class="Identifier">pcm16</span></a><span class="Other">(</span><span class="Identifier">frame</span><span class="Other">:</span> <a href="#AudioFrame"><span class="Identifier">AudioFrame</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">int16</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Converts audio to signed 16-bit stereo PCM with clipping at full scale.
+    Returns an owned copy of the frame as signed 16-bit stereo PCM.
+    <a href="https://github.com/treeform/mpeg/tree/master/src/mpeg/decoders.nim#L161" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/mpeg/edit/devel/src/mpeg/decoders.nim#L161" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+
+  </dd>
+</div>
+<div id="pcm16,AudioFrame,openArray[int16]">
+  <dt><pre><span class="Keyword">proc</span> <a href="#pcm16%2CAudioFrame%2CopenArray%5Bint16%5D"><span class="Identifier">pcm16</span></a><span class="Other">(</span><span class="Identifier">frame</span><span class="Other">:</span> <a href="#AudioFrame"><span class="Identifier">AudioFrame</span></a><span class="Other">;</span> <span class="Identifier">dest</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">int16</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Writes clipped PCM samples and returns the number that fit in dest.
     <a href="https://github.com/treeform/mpeg/tree/master/src/mpeg/decoders.nim#L155" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
 <a href="https://github.com/treeform/mpeg/edit/devel/src/mpeg/decoders.nim#L155" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
@@ -458,7 +470,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 17:15:52 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-11-22 17:24:21 UTC</small>
       </div>
     </div>
   </div>

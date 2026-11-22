@@ -373,3 +373,66 @@ suite "PL_MPEG native API":
     plm_frame_to_rgb(frame, addr rgb[0])
     check PLM_DEMUX_PACKET_AUDIO_4 == 0xC3
     check PLM_AUDIO_SAMPLES_PER_FRAME == 1152
+
+  test "all six pixel layouts respect odd dimensions, alpha, and stride":
+    type ConvertPixels = proc(frame: ptr plm_frame_t, dest: ptr uint8,
+        stride: cint) {.cdecl, raises: [].}
+    var
+      y = [100'u8, 100, 100, 0, 100, 100, 100, 0, 100, 100, 100, 0]
+      cb = [90'u8, 90, 0, 90, 128, 0]
+      cr = [170'u8, 170, 0, 0, 170, 128, 0, 0]
+      frame = plm_frame_t(
+        width: 3, height: 3,
+        y: plm_plane_t(width: 4, height: 3, data: addr y[0]),
+        cb: plm_plane_t(width: 3, height: 2, data: addr cb[0]),
+        cr: plm_plane_t(width: 4, height: 2, data: addr cr[0])
+      )
+    let formats: array[6, (string, ConvertPixels)] = [
+      ("rgb", ConvertPixels(plm_frame_to_rgb)), ("bgr", plm_frame_to_bgr),
+      ("rgba", plm_frame_to_rgba), ("bgra", plm_frame_to_bgra),
+      ("argb", plm_frame_to_argb), ("abgr", plm_frame_to_abgr)
+    ]
+    for (order, convert) in formats:
+      let stride = 3 * order.len + 2
+      var output = newSeq[uint8](3 * stride)
+      for value in output.mitems:
+        value = 55
+      convert(addr frame, addr output[0], cint(stride))
+      for row in 0 ..< 3:
+        for col in 0 ..< 3:
+          for offset, channel in order:
+            let expected =
+              if channel == 'a': 55
+              elif row == 2 and col == 2: 97
+              elif channel == 'r': 164
+              elif channel == 'g': 78
+              else: 20
+            check int(output[row * stride + col * order.len + offset]) == expected
+        check output[row * stride + stride - 2] == 55
+        check output[row * stride + stride - 1] == 55
+
+  test "ring and append buffers grow from zero and preserve rewind semantics":
+    let data = readFile(DataPath / "video.mpg")
+    for append in [false, true]:
+      let buffer =
+        if append: plm_buffer_create_for_appending(0)
+        else: plm_buffer_create_with_capacity(0)
+      defer: plm_buffer_destroy(buffer)
+      for offset in countup(0, data.high, 37):
+        let size = csize_t(min(37, data.len - offset))
+        check plm_buffer_write(buffer, cast[ptr uint8](addr data[offset]), size) == size
+      check plm_buffer_get_size(buffer) == csize_t(data.len)
+      check plm_buffer_get_remaining(buffer) == csize_t(data.len)
+      plm_buffer_signal_end(buffer)
+      let decoder = plm_create_with_buffer(buffer, 0)
+      defer: plm_destroy(decoder)
+      var count = 0
+      while plm_decode_video(decoder) != nil:
+        inc count
+      check count == 12
+      plm_rewind(decoder)
+      if append:
+        check plm_decode_video(decoder) != nil
+      else:
+        check plm_buffer_get_size(buffer) == 0
+        check plm_decode_video(decoder) == nil
